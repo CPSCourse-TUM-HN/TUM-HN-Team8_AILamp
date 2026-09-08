@@ -1,0 +1,39 @@
+1
+00:00:00,000 --> 00:00:03,500
+TEAM8 AiLamp | Expressive Motion
+Five joints. Six gestures.
+
+2
+00:00:03,500 --> 00:00:08,600
+Wake-up: posture and orientation change,
+as the lamp takes on an attentive stance.
+
+3
+00:00:09,800 --> 00:00:15,700
+Curiosity: a tilted head and changing orientation
+suggest interest in something nearby.
+
+4
+00:00:16,900 --> 00:00:23,133
+Nod: repeated up-and-down head movements
+express acknowledgment or a positive response.
+
+5
+00:00:24,333 --> 00:00:30,633
+Scanning: the lamp sweeps across different directions,
+as if looking around for a point of interest.
+
+6
+00:00:31,833 --> 00:00:36,633
+Headshake: a side-to-side gesture
+suggests disagreement or a negative response.
+
+7
+00:00:37,833 --> 00:00:42,000
+Idle: small posture changes
+keep the lamp visually engaged between gestures.
+
+8
+00:00:42,000 --> 00:00:45,866
+A simple motion vocabulary:
+attention, curiosity, and non-verbal responses.
