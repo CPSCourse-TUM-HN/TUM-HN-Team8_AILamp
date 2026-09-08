@@ -8,7 +8,7 @@ Presentation: **09.09.2026, from 13:00**, Etzelstr. 38 / online. Duration: **15 
 | # | Item | Where | Status |
 |---|---|---|---|
 | 1 | Video demonstrating the project in action | `docs/video/` | ☐ to record |
-| 2 | Technical report — project, methodologies, findings | `docs/report/TECHNICAL_REPORT.md` (+ PDF) | ☐ draft |
+| 2 | Technical report — project, methodologies, findings | [PDF](docs/report/TEAM8_AiLamp_Technical_Report.pdf) / [Word and source](docs/report/) | ☑ report published |
 | 3 | Presentation slides, **PDF format** | `docs/slides/` | ☐ to export |
 | 4 | All code used in the project | repository root | ☑ pushed |
 | 5 | Link to the GitHub repository holding all of the above | <https://github.com/CPSCourse-TUM-HN/TUM-HN-Team8_LeLamp> | ☑ pushed 30.08.2026 |
@@ -37,7 +37,7 @@ Repository (public, GPL-3.0): <https://github.com/CPSCourse-TUM-HN/TUM-HN-Team8_
 
 - [ ] Slides exported as PDF and committed
 - [ ] Demo video recorded, committed or linked from `docs/video/README.md`
-- [ ] Report finished and exported to PDF
+- [x] Report finished and exported to PDF
 - [ ] `scripts/verify_local.sh` passes on a clean checkout
 - [ ] `README.md` links resolve on GitHub
 - [ ] `NOTICE.md` provenance up to date

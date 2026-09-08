@@ -17,7 +17,7 @@ detection, expressive motion playback, addressable LED feedback, a voice agent
 | # | Required item | Location in this repository |
 |---|---|---|
 | 1 | **Video** demonstrating the project in action | [`docs/video/`](docs/video/) |
-| 2 | **Technical report** (project, methodology, findings) | [`docs/report/`](docs/report/) |
+| 2 | **Technical report** (project, methodology, findings) | [PDF](docs/report/TEAM8_AiLamp_Technical_Report.pdf) · [Word](docs/report/TEAM8_AiLamp_Technical_Report.docx) · [source and figures](docs/report/) |
 | 3 | **Presentation slides (PDF)** | [`docs/slides/`](docs/slides/) |
 | 4 | **All code** | repository root: `ailamp_runtime/`, `firmware/`, `simulation/`, `scripts/`, `config/`, `tests/` |
 | 5 | **Repository link** (this repo) | <https://github.com/CPSCourse-TUM-HN/TUM-HN-Team8_LeLamp> |

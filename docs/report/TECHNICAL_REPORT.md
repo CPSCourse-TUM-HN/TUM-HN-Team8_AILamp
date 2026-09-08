@@ -5,8 +5,9 @@
 **Date:** 09.09.2026
 **Repository:** <https://github.com/CPSCourse-TUM-HN/TUM-HN-Team8_LeLamp>
 
-> Working draft. Sections marked **TODO** need numbers, photos or text from the team before the
-> report is exported to PDF (`docs/report/Group8_CPS_Report.pdf`).
+> Historical planning outline, superseded by the completed TEAM8 AiLamp technical report:
+> [PDF](TEAM8_AiLamp_Technical_Report.pdf), [Word](TEAM8_AiLamp_Technical_Report.docx),
+> [full Markdown](TEAM8_AiLamp_Technical_Report.md). The TODOs below belong to this earlier outline.
 
 ---
 
