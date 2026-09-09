@@ -2,7 +2,7 @@
 
 本目录保存当前实体灯的新校准配置。机器人身份仍为 `lelamp`，ID 1–5 不变。
 
-- Nano 主机目录：`/home/hany/Downloads/LeLamp-demo-calibration-20260908-7QE2U0`
+- Nano 主机目录：`/home/<nano-user>/Downloads/LeLamp-demo-calibration-20260908-7QE2U0`
 - 容器内目录：`/home/LeLamp-demo-calibration-20260908-7QE2U0`
 - 原运行容器：`2082fbab718a`
 - 文件：`lelamp.json`
@@ -26,6 +26,6 @@
 
 ## 原动作快照
 
-`nano_recordings/` 是从 Nano 主机 `/home/hany/Downloads/lelamp_runtime/lelamp/recordings/` 通过 SCP 取得的 13 个原始 CSV，每个文件与本轮 Nano 源文件 SHA-256 相同。它包括旧 Mac 动作库没有的 `test01`、`test02`。
+`nano_recordings/` 是从 Nano 主机 `/home/<nano-user>/Downloads/lelamp_runtime/lelamp/recordings/` 通过 SCP 取得的 13 个原始 CSV，每个文件与本轮 Nano 源文件 SHA-256 相同。它包括旧 Mac 动作库没有的 `test01`、`test02`。
 
 现有 `RecordingStore` 对全部 5488 帧的五轴列、有限数值和 `[-100,100]` 范围检查通过；这只是数据预检，不证明全身动作或承重已通过。具体方案与待确认的实现任务见 `docs/superpowers/specs/2026-09-08-five-axis-physical-demo-design.md`。

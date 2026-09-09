@@ -16,11 +16,11 @@ Do not make Blender, Gazebo, Isaac Sim, SolidWorks, or Fusion 360 the primary pr
 
 ## Hardware Profiles
 
-The full non-printed hardware BOM is the structured `[hardware_bom]` section in the active profile config. Use `config/hardware.toml` for Orin Nano Super and `config/hardware.jetson-nano.toml` for Jetson Nano 4GB. `docs/en/0-prerequisites.md` mirrors both profiles for purchasing. This includes Jetson, storage or microSD boot media, ST3215 servos, Waveshare servo driver, both MEAN WELL power supplies, Pico WH, NeoMatrix, TXS0108E, Arducam UB0234, ReSpeaker XVF3800, Seeed 4 ohm 5W speaker, emergency switch, USB cables, servo extensions, DC barrel adapters, WAGO connectors, and wire.
+The full non-printed hardware BOM is the structured `[hardware_bom]` section in the active profile config. Use `config/hardware.toml` for the Jetson Nano 4GB used in the demonstration, `config/hardware.jetson-nano.toml` for the same profile under its explicit name, and `config/hardware.orin.toml` for the Orin Nano Super reference profile. `docs/en/0-prerequisites.md` mirrors both profiles for purchasing. This includes Jetson, storage or microSD boot media, ST3215 servos, Waveshare servo driver, both MEAN WELL power supplies, Pico WH, NeoMatrix, TXS0108E, Arducam UB0234, ReSpeaker XVF3800, Seeed 4 ohm 5W speaker, emergency switch, USB cables, servo extensions, DC barrel adapters, WAGO connectors, and wire.
 
 Two controller profiles are provided:
 
-- `config/hardware.toml`: Orin Nano Super profile with local YOLO person/pose detection.
+- `config/hardware.toml`: the active profile. It is the Jetson Nano 4GB (`platform = "jetson-nano"`), API-hybrid vision, no local YOLO. The Orin Nano Super reference profile is `config/hardware.orin.toml`.
 - `config/hardware.jetson-nano.toml`: Jetson Nano 4GB API-hybrid profile. It keeps motor, LED, camera, and voice behavior but does not run MuJoCo, local YOLO pose, or local large models on the Nano.
 
 ## Project Layout
@@ -32,7 +32,7 @@ AILamp/
   simulation/                 MuJoCo MJCF model, STL assets, AILamp scene
   firmware/pico_led_controller/
   ailamp_runtime/ailamp/      Python runtime package
-  config/hardware.toml        Orin Nano Super hardware and runtime config
+  config/hardware.toml        active hardware and runtime config (Jetson Nano 4GB)
   config/hardware.jetson-nano.toml
   docs/en/                    English build guide
   docs/zh/                    Chinese build guide

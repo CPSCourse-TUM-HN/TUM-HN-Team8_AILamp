@@ -19,7 +19,7 @@
 ## 2026-09-09 00:25–00:29 wake_up 与归位实验
 
 - 用户回复“可以维持”，确认本次五轴同时保持时整臂能维持姿态。CLI 中已记录 `confirm arm`，随后 `capture-home CONFIRM` 从实测值保存 `/home/AILamp-motor-demo-20260909-7CeZo8/home.hardware.json`。
-- 归位目标（ID 1–5 原始值）：`2098/2135/1812/2065/2183`；绑定的新校准哈希不变。普通 hany 账号 SCP 读取该新文件被权限拒绝，未修改权限或绕过；目前原文件仅在 Nano，未声称已备份到 Mac。
+- 归位目标（ID 1–5 原始值）：`2098/2135/1812/2065/2183`；绑定的新校准哈希不变。普通 <nano-user> 账号 SCP 读取该新文件被权限拒绝，未修改权限或绕过；目前原文件仅在 Nano，未声称已备份到 Mac。
 - 执行 `play wake_up`，保留原 258 帧完整五轴目标，使用 fps=15、max-step-units=2 及有界过渡；速度/加速度/出力参数为 100/10/500。未提高出力或更改校准。
 - wake_up 最终目标（归一化，ID 1–5）：`-2.235180/-46.232179/72.017167/5.625606/37.389202`；反馈为 `-3.050109/-45.414201/70.081710/5.426357/36.978885`，各轴误差均不超过本次 2 单位容差。`busy=false, fault=null`。用户随后反馈“没问题”，已在会话记录 wake_up 的现场确认。
 - 之后发出 `home`。目标完整发送，但最终反馈在 10 秒内未到位，锁存 `fresh motor feedback did not reach target within 10s`。超时末次反馈为 `11.111111/12.426036/-20.427404/8.010336/17.920953`，其中肘关节与 home 差约 57.95 归一化单位。没有忽略错误继续播放剧本，也没有提高力矩或盲目重试。
@@ -42,9 +42,9 @@
 
 ## 2026-09-09 00:15–00:21 新版部署与实机只读预检
 
-- USB `hany@192.168.55.1:22` 已重新认证成功，严格复用已保存的主机密钥。旧 Wi-Fi 地址 `172.20.10.10:22` 本轮超时；Nano 当前 IPv4 列表未显示 wlan0 地址。本轮使用 USB，不依赖 Wi-Fi、OpenAI、LED 或音视频。
+- USB `<nano-user>@192.168.55.1:22` 已重新认证成功，严格复用已保存的主机密钥。旧 Wi-Fi 地址 `172.20.10.10:22` 本轮超时；Nano 当前 IPv4 列表未显示 wlan0 地址。本轮使用 USB，不依赖 Wi-Fi、OpenAI、LED 或音视频。
 - 原容器 `2082fbab718a` / `lelamp:V1.0` 已运行约 4 小时；未重启、重建或安装依赖。Downloads → `/home`、`/dev` → `/dev` 映射仍在，容器 Python 为 3.12.0。
-- 最新六个必要 Python 源文件上传到独立目录 `/home/hany/Downloads/AILamp-motor-demo-20260909-7CeZo8`（容器内 `/home/AILamp-motor-demo-20260909-7CeZo8`）。没有覆盖原 `/home/hany/Downloads/lelamp_runtime`、校准文件或 CSV。上传压缩包双端 SHA-256 均为 `63f934abab398466b49424a64cdc342ea55185261b4d5e89125a69fd16f33476`。
+- 最新六个必要 Python 源文件上传到独立目录 `/home/<nano-user>/Downloads/AILamp-motor-demo-20260909-7CeZo8`（容器内 `/home/AILamp-motor-demo-20260909-7CeZo8`）。没有覆盖原 `/home/<nano-user>/Downloads/lelamp_runtime`、校准文件或 CSV。上传压缩包双端 SHA-256 均为 `63f934abab398466b49424a64cdc342ea55185261b4d5e89125a69fd16f33476`。
 - Mac 全仓库测试：`327 passed in 5.04s`。Nano 使用原容器解释器和实际原动作目录执行新版 `preflight`：13 段、5488 帧通过，各 CSV 哈希与本地快照一致。
 - 新校准文件 SHA-256 仍为 `8285b8c0d24239046dec3db33e305fecbec5a4be2f9c3a4c2e718ed068a943c1`。实际 SDK 的只读校准比较通过；没有写 EEPROM、没有调用 follower.configure/calibrate/setup_motors。
 - 串口 `/dev/ttyACM0` 与稳定别名 `/dev/serial/by-id/usb-1a86_USB_Single_Serial_5B14033387-if00` 存在。连接前 `sudo fuser` 未发现占用。
@@ -69,7 +69,7 @@ sudo docker exec -it \
 
 ## 21:30 动作快照与软件接入准备
 
-- 13 段原动作从 Nano 主机 `/home/hany/Downloads/lelamp_runtime/lelamp/recordings/` 复制到 Mac `output/hardware_backups/LeLamp-demo-calibration-20260908-7QE2U0/nano_recordings/`，逐文件 SHA-256 与 Nano 源相同。
+- 13 段原动作从 Nano 主机 `/home/<nano-user>/Downloads/lelamp_runtime/lelamp/recordings/` 复制到 Mac `output/hardware_backups/LeLamp-demo-calibration-20260908-7QE2U0/nano_recordings/`，逐文件 SHA-256 与 Nano 源相同。
 - 现有 `RecordingStore` 全量读取通过：`curious=177, excited=144, happy_wiggle=149, headshake=144, idle=1798, nod=187, sad=149, scanning=189, shock=144, shy=220, test01=1123, test02=806, wake_up=258` 帧，共 5488 帧。检查五轴列、有限数值与归一化范围；没有据此宣称实体动作通过。
 - 最新只读位置 `2098/2135/1812/2065/2183`，Torque_Enable 和 Status 全部 `0`，新配置匹配为 True，读取后串口关闭。
 - 仍保留旧 Goal_Position：`0/2421/1803/2058/2160`。尤其 ID 1 的目标 `0` 与新范围不符，ID 2 目标与当前位置也相差较大；后续必须先按新鲜实测姿态准备目标，不能直接全轴 enable。
@@ -81,7 +81,7 @@ sudo docker exec -it \
 - 根据 Nano 实际 SDK 的 `Present_Position = Actual_Position - Homing_Offset`，只为 ID 1 写入 Homing_Offset `811`、Min_Position_Limit `1588`、Max_Position_Limit `2506`；Lock 暂时设 `0` 以写校准，逐项读回后恢复 `1`。没有调用全轴校准/重置函数。
 - 换算为 `p_new = p_old - 1034`；旧零向 `3081` 对应新坐标 `2047`，SDK 实测其归一化值为 `0.0`。工作区间对应旧坐标 `2622..3540`，对称半宽 `459 counts`（约 40.3°），位于人工确认的 `2480..3572` 之内。
 - 其他四轴校准逐项与写入前快照比较相同。完整五轴原 CSV 可以保留，但 ID 1 的实际转角会随新校准跨度重新映射，不能声称与原作者硬件的物理幅度完全一致。
-- 新文件 Nano 主机路径：`/home/hany/Downloads/LeLamp-demo-calibration-20260908-7QE2U0/lelamp.json`；容器内路径：`/home/LeLamp-demo-calibration-20260908-7QE2U0/lelamp.json`。后续配置参数 `calibration_dir` 应使用这个**目录**，`id` 仍为 `lelamp`。
+- 新文件 Nano 主机路径：`/home/<nano-user>/Downloads/LeLamp-demo-calibration-20260908-7QE2U0/lelamp.json`；容器内路径：`/home/LeLamp-demo-calibration-20260908-7QE2U0/lelamp.json`。后续配置参数 `calibration_dir` 应使用这个**目录**，`id` 仍为 `lelamp`。
 - Mac 已通过 SCP 保存原始字节：`AILamp/output/hardware_backups/LeLamp-demo-calibration-20260908-7QE2U0/lelamp.json`；同目录有说明文件。双端 SHA-256 相同：`8285b8c0d24239046dec3db33e305fecbec5a4be2f9c3a4c2e718ed068a943c1`。
 - 原容器 Leader/Follower 文件均未覆盖，哈希仍分别为 `7fa29fb124cd86a702a02a73a91f87fb160aee6b59380f0069235111c5bb863c` 与 `718ab2c24c51a643f19fc3f4a0ab59de1c1d82b849ac7e258839e6aaf3a3590d`。它们现在是保留的旧配置，**不可通过默认校准流程重新写回**。
 - 使用新目录启动独立 Python 进程，只调用 `bus.connect()` 而不调用 `follower.connect()`：`is_calibrated=True`；原始位置 `2098/2135/1812/2065/2183` 全部在范围内；五轴 Torque_Enable 均为 `0`；五轴 Lock 均为 `1`；串口关闭成功，21:20 `fuser` 无占用。
@@ -188,7 +188,7 @@ sudo docker exec -it \
 | --- | --- | --- |
 | 连接方式 | USB 设备模式直连 Mac，同时通过 Wi-Fi 热点联网 | USB SSH 保留，Wi-Fi 已连接 |
 | Nano USB 网络 IP | `192.168.55.1` | Ping 成功，2/2 响应 |
-| SSH 登录端口 | TCP `22` | 已完成 `hany` 账号身份认证并进入终端 |
+| SSH 登录端口 | TCP `22` | 已完成 `<nano-user>` 账号身份认证并进入终端 |
 | Mac USB 网络 IP | `192.168.55.100` | 已由 Nano 的 DHCP 服务分配 |
 | Mac USB 网络接口 | `en11` | active；到 Nano 的路由经过此接口 |
 | USB 网络掩码 | `255.255.255.0`（/24） | 已验证 |
@@ -200,7 +200,7 @@ sudo docker exec -it \
 | 无线网卡 | USB `0bda:b812`，Realtek；驱动 `rtl88x2bu` | 已识别为 `wlan0`，未另装驱动 |
 | 无线网关 / DNS | `172.20.10.1` | 来自热点 DHCP |
 | 无线自动连接 | `yes` | 已保存该热点的 NetworkManager 配置 |
-| Nano 登录用户名 | `hany` | 用户提供，`whoami` 实测确认 |
+| Nano 登录用户名 | `<nano-user>` | 用户提供，`whoami` 实测确认 |
 | Nano 主机名 | `nvidia` | `hostname` 实测确认 |
 | 板卡标识 | `NVIDIA Jetson Nano Developer Kit` | 来自 `/proc/device-tree/model` |
 | 操作系统 | Ubuntu 18.04.6 LTS，aarch64 | SSH 登录横幅确认 |
@@ -214,12 +214,12 @@ SSH 服务响应：`SSH-2.0-OpenSSH_7.6p1 Ubuntu-4ubuntu0.5`。
 在 Mac 终端运行：
 
 ```bash
-ssh -p 22 hany@192.168.55.1
+ssh -p 22 <nano-user>@192.168.55.1
 ```
 
 密码只在 SSH 的密码提示处输入，不另存到本文件、脚本或记忆。用户明确同意保存主机密钥后，已将以下 ED25519 主机密钥加入 Mac 的 SSH known_hosts，并成功登录：
 
-`SHA256:Bo0uwQXf+O0v3V2BZZijW3VcTU7dmtZrR8NTl+gK0kY`
+`<nano-host-key-fingerprint>`
 
 后续若指纹变化，应先核实原因，不禁用主机密钥检查。
 
@@ -232,14 +232,14 @@ Mac 必须能通过局域网到达该无线地址，才可以使用它登录。�
 仅在 Mac 已连接该热点且确认设备互通后，可用下面的命令复用已经核对的 Nano 主机密钥，检查无线登录：
 
 ```bash
-ssh -o HostKeyAlias=192.168.55.1 -o StrictHostKeyChecking=yes -p 22 hany@172.20.10.10
+ssh -o HostKeyAlias=192.168.55.1 -o StrictHostKeyChecking=yes -p 22 <nano-user>@172.20.10.10
 ```
 
 `HostKeyAlias` 使用此前 USB 登录保存的同一台 Nano 的主机密钥，仍严格检查指纹。该无线登录命令尚未执行。
 
 ### 本次 Wi-Fi 配置与外网验证
 
-- 用户授权 `hany` 执行本次 NetworkManager 管理员认证。只连接并保存了指定热点，没有修改系统权限策略，没有安装驱动，没有启动硬件控制。
+- 用户授权 `<nano-user>` 执行本次 NetworkManager 管理员认证。只连接并保存了指定热点，没有修改系统权限策略，没有安装驱动，没有启动硬件控制。
 - 连接配置 UUID：`d29a2e26-8bb7-41c9-8853-96d61c144ba0`；`connection.autoconnect: yes`。
 - Wi-Fi 默认路由：`default via 172.20.10.1 dev wlan0 metric 600`；原 USB 默认路由仍保留，metric 为 `32766`。
 - Nano 通过 HTTPS 访问 `https://www.baidu.com/` 返回 `200 OK`，确认至少这条通用互联网访问路径可用。
@@ -261,14 +261,14 @@ ssh -o HostKeyAlias=192.168.55.1 -o StrictHostKeyChecking=yes -p 22 hany@172.20.
 
 | 项目 | 已核实内容 |
 | --- | --- |
-| Nano 下载目录 | `/home/hany/Downloads`；其中有 `lelamp_runtime` 和 `lerobot` |
-| 实际 LeLamp 程序 | `/home/hany/Downloads/lelamp_runtime` |
+| Nano 下载目录 | `/home/<nano-user>/Downloads`；其中有 `lelamp_runtime` 和 `lerobot` |
+| 实际 LeLamp 程序 | `/home/<nano-user>/Downloads/lelamp_runtime` |
 | 程序指定的 LeRobot 来源 | 该运行目录中的 `vendor/lerobot`，不是相邻的 `Downloads/lerobot` |
-| 电机串口 | `/dev/ttyACM0`，权限为 root:dialout `0660`；`hany` 当前不在 dialout 组 |
+| 电机串口 | `/dev/ttyACM0`，权限为 root:dialout `0660`；`<nano-user>` 当前不在 dialout 组 |
 | 稳定串口别名 | `/dev/serial/by-id/usb-1a86_USB_Single_Serial_5B14033387-if00`，本次指向 `/dev/ttyACM0` |
 | 原 LeLamp 容器 | `2082fbab718a`，名称 `condescending_gould`，镜像 `lelamp:V1.0` |
 | 容器状态 | `exited`；最后退出码 255，原因未调查；核查结束时仍未启动 |
-| 目录映射 | Nano `/home/hany/Downloads` → 容器 `/home`；Nano `/dev` → 容器 `/dev` |
+| 目录映射 | Nano `/home/<nano-user>/Downloads` → 容器 `/home`；Nano `/dev` → 容器 `/dev` |
 | 容器默认命令 | Entrypoint 为 null，Cmd 为 `/bin/bash` |
 | Python 环境线索 | `.venv/bin/python` 指向 `/usr/local/bin/python3.12`；未执行解释器或验证全部依赖 |
 | 校准身份 | follower 类型 `lelamp_follower`，ID 为 `lelamp` |
@@ -292,7 +292,7 @@ Follower 原文件字节的 SHA-256：
 
 2026-09-08 20:19 验证：
 
-- Nano 备份目录：`/home/hany/Downloads/LeLamp-calibration-backup-20260908-g0jqYZ`
+- Nano 备份目录：`/home/<nano-user>/Downloads/LeLamp-calibration-backup-20260908-g0jqYZ`
 - Mac 备份目录：`/Users/yugu/Documents/New project 4/AILamp/output/hardware_backups/LeLamp-calibration-backup-20260908-g0jqYZ`
 - 保留完整 `calibration/robots/lelamp_follower/lelamp.json` 与 `calibration/teleoperators/lelamp_leader/lelamp.json` 目录结构和原始 JSON 字节。
 - Follower：769 字节，SHA-256 为上文的 `718ab2c24c51a643f19fc3f4a0ab59de1c1d82b849ac7e258839e6aaf3a3590d`。

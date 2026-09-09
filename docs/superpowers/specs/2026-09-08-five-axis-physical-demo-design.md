@@ -12,7 +12,7 @@
 
 ## 已核实的输入
 
-- 原运行环境：Nano 主机 `/home/hany/Downloads/lelamp_runtime`，容器 `2082fbab718a` 中为 `/home/lelamp_runtime`，Python 3.12。
+- 原运行环境：Nano 主机 `/home/<nano-user>/Downloads/lelamp_runtime`，容器 `2082fbab718a` 中为 `/home/lelamp_runtime`，Python 3.12。
 - 机器人身份 `lelamp`，串口 `/dev/ttyACM0`；稳定别名 `/dev/serial/by-id/usb-1a86_USB_Single_Serial_5B14033387-if00`。连接时须重新解析、独占，不把历史接口状态当作当前证据。
 - 新校准目录（容器内）：`/home/LeLamp-demo-calibration-20260908-7QE2U0`，文件 `lelamp.json`，SHA-256 `8285b8c0d24239046dec3db33e305fecbec5a4be2f9c3a4c2e718ed068a943c1`。
 - ID 1 的 offset/min/max 为 `811/1588/2506`，原中立朝向对应新原始坐标 `2047`，归一化 `0`。ID 2–5 校准未改变。
