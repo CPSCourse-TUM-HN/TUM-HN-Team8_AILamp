@@ -45,6 +45,7 @@ test = [
     "manifold3d>=3.0",
     "mapbox-earcut>=1.0",
     "trimesh>=4.0",
+    "networkx>=3.0",   # trimesh graph operations; not pulled in by base trimesh
 ]
 
 [project.scripts]

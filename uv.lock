@@ -49,6 +49,7 @@ simulation = [
 test = [
     { name = "manifold3d" },
     { name = "mapbox-earcut" },
+    { name = "networkx" },
     { name = "pytest" },
     { name = "trimesh" },
 ]
@@ -68,6 +69,7 @@ requires-dist = [
     { name = "mapbox-earcut", specifier = ">=1.0" },
     { name = "mapbox-earcut", marker = "extra == 'test'", specifier = ">=1.0" },
     { name = "mujoco", marker = "extra == 'simulation'", specifier = ">=3.2" },
+    { name = "networkx", marker = "extra == 'test'", specifier = ">=3.0" },
     { name = "numpy", specifier = ">=1.26" },
     { name = "numpy", marker = "extra == 'nano'", specifier = ">=1.26" },
     { name = "openai", marker = "extra == 'nano'", specifier = ">=2.35.0" },
