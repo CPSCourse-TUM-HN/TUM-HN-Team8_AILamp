@@ -1,4 +1,4 @@
-# Team 8 — Interactive Robot Lamp (LeLamp-based)
+# Team 8 — Interactive Robot Lamp 
 
 **Course:** Embedded Systems, Cyber-Physical Systems and Robotics (INHN0018) — TUM Campus Heilbronn, Summer 2026
 **Team:** Group 8 · **Presentation:** 09.09.2026, from 13:00 (online)
