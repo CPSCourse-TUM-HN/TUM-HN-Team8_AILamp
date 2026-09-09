@@ -33,3 +33,14 @@ Motion sequence: Wake-up → Curiosity → Nod → Scanning → Headshake → Id
 
 The captions explain the expressive meaning of each gesture. This video covers
 the motion sequence; live sensor input and AI-triggered control are not demonstrated.
+
+## How the animation was produced
+
+The simulation animation is a MuJoCo forward-kinematic render, not a physics simulation and not a
+recording of the physical lamp. Its provenance is recorded here:
+
+- [`preview_metadata.json`](preview_metadata.json) — render parameters, source digests, joint mapping
+  and the truthful-scope statement. Absolute paths from the authoring machine were replaced with
+  `<project-root>/`; nothing else was changed.
+- [`scripts/render_lelamp_video.py`](../../scripts/render_lelamp_video.py) — the renderer that
+  produced it.

@@ -1,0 +1,611 @@
+{
+  "schema_version": 1,
+  "artifact_status": "final",
+  "generated_at_utc": "2026-09-08T09:52:44.374573+00:00",
+  "commands": {
+    "preview": "PYTHONDONTWRITEBYTECODE=1 'python3' '<project-root>/mujoco_mcp/render_lelamp_video.py' --preview-only --camera-azimuth -55 --camera-elevation -25 --overwrite",
+    "final": "PYTHONDONTWRITEBYTECODE=1 'python3' '<project-root>/mujoco_mcp/render_lelamp_video.py' --camera-azimuth -55 --camera-elevation -25 --overwrite"
+  },
+  "truthful_scope": {
+    "render_type": "MuJoCo forward-kinematic animation",
+    "dynamics_validated": false,
+    "physical_motor_execution": false,
+    "vision_recognition": false,
+    "openai_decision_making": false,
+    "hardware_or_api_calls": false,
+    "audio": false,
+    "on_screen_text": false
+  },
+  "sources": [
+    {
+      "path": "<project-root>/LeLamp/simulation/assets/diffuser.stl",
+      "role": "mjcf_mesh_asset",
+      "sha256": "75c0047e22f01a5267da04743f4c3b0fd5859829f9696904ca818c51338ec44a"
+    },
+    {
+      "path": "<project-root>/LeLamp/simulation/assets/ge_27.stl",
+      "role": "mjcf_mesh_asset",
+      "sha256": "3f2c4c5e722886296fe575a14040865a05e119573c00e2f8c7596c51793dda21"
+    },
+    {
+      "path": "<project-root>/LeLamp/simulation/assets/lamp_base.stl",
+      "role": "mjcf_mesh_asset",
+      "sha256": "d499543deaeae40189c5dfe00d7e3ba3d166b8f829bd9222c50d78979999e94e"
+    },
+    {
+      "path": "<project-root>/LeLamp/simulation/assets/lamp_base_cover.stl",
+      "role": "mjcf_mesh_asset",
+      "sha256": "a22669766a884d4fcffd39add6c8c856c2b86bd83697fe8e040f3e665d16f757"
+    },
+    {
+      "path": "<project-root>/LeLamp/simulation/assets/lamparm__base_elbow.stl",
+      "role": "mjcf_mesh_asset",
+      "sha256": "d20ba32e47e3e0cf5a18c7fb270d1b060af59260a549d7d0f74d0afbe4ffa7c6"
+    },
+    {
+      "path": "<project-root>/LeLamp/simulation/assets/lamparm__elbow_wrist.stl",
+      "role": "mjcf_mesh_asset",
+      "sha256": "9ad7237ab5ba481c410a09a2e7f6c92a0005c9dcf26c2196aa6ab671e69fdaf1"
+    },
+    {
+      "path": "<project-root>/LeLamp/simulation/assets/lamparm__wrist_head.stl",
+      "role": "mjcf_mesh_asset",
+      "sha256": "2e729d824db7120f11a7dad9b0d2cd595d0789bc5714cc6771169c03fec85d7d"
+    },
+    {
+      "path": "<project-root>/LeLamp/simulation/assets/lamphead.stl",
+      "role": "mjcf_mesh_asset",
+      "sha256": "7aba39a63533fefe80a8f9562521174e8f55073be88dffb33073604ae1993835"
+    },
+    {
+      "path": "<project-root>/LeLamp/simulation/assets/motor_1723_3.stl",
+      "role": "mjcf_mesh_asset",
+      "sha256": "8b5a44f167585da024d23444835919f42d1daa6cf56e4ca3b06b151bc05d21c2"
+    },
+    {
+      "path": "<project-root>/LeLamp/simulation/assets/pcb_chazuo_92.stl",
+      "role": "mjcf_mesh_asset",
+      "sha256": "bf49c0f68063e8f829317058bfaf4cbbef02caeee24f264a5261b79cf68555f6"
+    },
+    {
+      "path": "<project-root>/LeLamp/simulation/assets/sg_ziji_15.stl",
+      "role": "mjcf_mesh_asset",
+      "sha256": "737ba35fbf9e1fc90f6901f5506922e1bd681c214848c5020a477dc546768be8"
+    },
+    {
+      "path": "<project-root>/LeLamp/simulation/assets/xg_ziji_16.stl",
+      "role": "mjcf_mesh_asset",
+      "sha256": "56ac601a3ea4240a00623e406d155b645ed20d7ab22ef21ad7e29d70eb665ba1"
+    },
+    {
+      "path": "<project-root>/LeLamp/simulation/assets/zk_122.stl",
+      "role": "mjcf_mesh_asset",
+      "sha256": "213ecfb8a8b5416867588e0c56cf981b5aedef160e80a1ea53e7aa74cdf5ace2"
+    },
+    {
+      "path": "<project-root>/LeLamp/simulation/assets/金属舵盘_从动__v2.stl",
+      "role": "mjcf_mesh_asset",
+      "sha256": "1df52af8c7e581c4fed124332b3daf0588f414bbf296895c434bc2e0fd013256"
+    },
+    {
+      "path": "<project-root>/LeLamp/simulation/assets/金属舵盘_驱动__v2.stl",
+      "role": "mjcf_mesh_asset",
+      "sha256": "28baf5d90c7e674456fd11b43a9e02f93fc0543c9589dc29fafc0ce1b933dc95"
+    },
+    {
+      "path": "<project-root>/LeLamp/simulation/robot.xml",
+      "role": "mjcf",
+      "sha256": "c17a8e8e10a6a748144a74652fad85ff6fb417bcf1b7595722d0ebc1c287c55e"
+    },
+    {
+      "path": "<project-root>/LeLamp/simulation/scene.xml",
+      "role": "mjcf",
+      "sha256": "5eb975b62f1c08c4c41168a743fbe2c0b4b094f46a4e688962fa9c7748dc10c5"
+    },
+    {
+      "path": "<project-root>/lelamp_runtime/lelamp/follower/config_lelamp_follower.py",
+      "role": "normalization_evidence",
+      "sha256": "b3b3461946a978939d399f8928bc525df31ec55a5d21c03a9c46dfa7b30944ed"
+    },
+    {
+      "path": "<project-root>/lelamp_runtime/lelamp/leader/config_lelamp_leader.py",
+      "role": "normalization_evidence",
+      "sha256": "213a6bd5945600769c4cd93cdab0c8bcd25e02ba55e1dabcb185a3426b3b07ae"
+    },
+    {
+      "path": "<project-root>/lelamp_runtime/lelamp/recordings/curious.csv",
+      "role": "recording",
+      "sha256": "c4e12e471f304fe68894d65c0244f6d1b323d07aeab6651454e3ae3693e1f8ea"
+    },
+    {
+      "path": "<project-root>/lelamp_runtime/lelamp/recordings/headshake.csv",
+      "role": "recording",
+      "sha256": "f044791785c8466563da595b7294202d8dcfb799b0c714c942eb5bff55a24f84"
+    },
+    {
+      "path": "<project-root>/lelamp_runtime/lelamp/recordings/idle.csv",
+      "role": "recording",
+      "sha256": "22da25cdacf675b46296df7df82b485e3a1e636e6f1fa27c6532b0277dc10062"
+    },
+    {
+      "path": "<project-root>/lelamp_runtime/lelamp/recordings/nod.csv",
+      "role": "recording",
+      "sha256": "0cc9c9b6c96510f50d0af1defff5a21d4d618f347f0d7ca6b94a86fac9658531"
+    },
+    {
+      "path": "<project-root>/lelamp_runtime/lelamp/recordings/scanning.csv",
+      "role": "recording",
+      "sha256": "e045bbd3084b6d26b28496010f39ec3f83a707584cbe15255a832412728d75a6"
+    },
+    {
+      "path": "<project-root>/lelamp_runtime/lelamp/recordings/wake_up.csv",
+      "role": "recording",
+      "sha256": "050f343e8df5b4c276639852124293bbca4d77ad71a646a946afac248ddb3151"
+    }
+  ],
+  "model": {
+    "path": "<project-root>/LeLamp/simulation/scene.xml",
+    "mujoco_version": "3.8.0",
+    "nq": 12,
+    "nv": 11,
+    "joint_count": 6,
+    "actuator_count": 5,
+    "actuator_array_order": [
+      "2",
+      "1",
+      "3",
+      "4",
+      "5"
+    ],
+    "joint_mapping": {
+      "base_yaw": {
+        "csv_column": "base_yaw.pos",
+        "joint_name": "1",
+        "joint_id": 2,
+        "qpos_address": 8,
+        "actuator_id": 1,
+        "joint_range_radians": [
+          -5.021033992714066,
+          1.2621513144655205
+        ]
+      },
+      "base_pitch": {
+        "csv_column": "base_pitch.pos",
+        "joint_name": "2",
+        "joint_id": 1,
+        "qpos_address": 7,
+        "actuator_id": 0,
+        "joint_range_radians": [
+          -1.0842575396713956,
+          2.0573351139183975
+        ]
+      },
+      "elbow_pitch": {
+        "csv_column": "elbow_pitch.pos",
+        "joint_name": "3",
+        "joint_id": 3,
+        "qpos_address": 9,
+        "actuator_id": 2,
+        "joint_range_radians": [
+          -2.820024081304335,
+          0.3215685722854582
+        ]
+      },
+      "wrist_roll": {
+        "csv_column": "wrist_roll.pos",
+        "joint_name": "4",
+        "joint_id": 4,
+        "qpos_address": 10,
+        "actuator_id": 3,
+        "joint_range_radians": [
+          -3.7865399953934267,
+          2.4966453117861596
+        ]
+      },
+      "wrist_pitch": {
+        "csv_column": "wrist_pitch.pos",
+        "joint_name": "5",
+        "joint_id": 5,
+        "qpos_address": 11,
+        "actuator_id": 4,
+        "joint_range_radians": [
+          -0.8533371981959901,
+          2.288255455393803
+        ]
+      }
+    },
+    "geometry_source_edited": false
+  },
+  "normalization": {
+    "source_convention": "LeRobot RANGE_M100_100",
+    "evidence": "original leader/follower configs set use_degrees=False",
+    "conversion": "clip to [-100,100], then linearly map -100 to MJCF lower and +100 to MJCF upper",
+    "calibration_status": "unverified simulation convention; not real servo calibration"
+  },
+  "animation": {
+    "servo_order": [
+      "base_yaw",
+      "base_pitch",
+      "elbow_pitch",
+      "wrist_roll",
+      "wrist_pitch"
+    ],
+    "fps": 30,
+    "frame_count": 1376,
+    "final_simulation_time_seconds": 45.833333333333336,
+    "nominal_encoded_duration_seconds": 45.86666666666667,
+    "motions": [
+      {
+        "name": "wake_up",
+        "source_path": "<project-root>/lelamp_runtime/lelamp/recordings/wake_up.csv",
+        "row_count": 258,
+        "source_duration_seconds": 8.595688623000115,
+        "included_duration_seconds": 8.595688623000115,
+        "normalized_min": [
+          -11.175898931000972,
+          -60.651731160896134,
+          60.171673819742495,
+          -42.67701260911736,
+          36.744560838033834
+        ],
+        "normalized_max": [
+          47.327502429543244,
+          -45.66191446028513,
+          76.99570815450645,
+          22.59941804073715,
+          69.78243352135374
+        ]
+      },
+      {
+        "name": "curious",
+        "source_path": "<project-root>/lelamp_runtime/lelamp/recordings/curious.csv",
+        "row_count": 177,
+        "source_duration_seconds": 5.884423020999975,
+        "included_duration_seconds": 5.884423020999975,
+        "normalized_min": [
+          -19.533527696793,
+          -29.613034623217928,
+          53.56223175965664,
+          2.036857419980606,
+          24.73811442385174
+        ],
+        "normalized_max": [
+          25.55879494655005,
+          -28.879837067209778,
+          54.42060085836911,
+          67.31328806983512,
+          25.624496373892015
+        ]
+      },
+      {
+        "name": "nod",
+        "source_path": "<project-root>/lelamp_runtime/lelamp/recordings/nod.csv",
+        "row_count": 187,
+        "source_duration_seconds": 6.221237414000029,
+        "included_duration_seconds": 6.221237414000029,
+        "normalized_min": [
+          5.150631681243922,
+          -26.272912423625243,
+          40.94420600858368,
+          -7.953443258971873,
+          -22.07896857373086
+        ],
+        "normalized_max": [
+          6.122448979591837,
+          -20.570264765784117,
+          67.72532188841203,
+          -0.3879728419010604,
+          27.316680096696217
+        ]
+      },
+      {
+        "name": "scanning",
+        "source_path": "<project-root>/lelamp_runtime/lelamp/recordings/scanning.csv",
+        "row_count": 189,
+        "source_duration_seconds": 6.286166568999988,
+        "included_duration_seconds": 6.286166568999988,
+        "normalized_min": [
+          -49.562682215743436,
+          -40.20366598778005,
+          57.08154506437768,
+          -1.4548981571290085,
+          25.221595487510058
+        ],
+        "normalized_max": [
+          58.98931000971817,
+          -35.315682281059054,
+          57.76824034334766,
+          -0.3879728419010604,
+          26.10797743755036
+        ]
+      },
+      {
+        "name": "headshake",
+        "source_path": "<project-root>/lelamp_runtime/lelamp/recordings/headshake.csv",
+        "row_count": 144,
+        "source_duration_seconds": 4.783469663000005,
+        "included_duration_seconds": 4.783469663000005,
+        "normalized_min": [
+          -10.495626822157433,
+          -29.694501018329944,
+          55.107296137339034,
+          -32.49272550921435,
+          11.361804995971
+        ],
+        "normalized_max": [
+          36.54033041788142,
+          -25.94704684317719,
+          59.91416309012877,
+          17.36178467507274,
+          12.167606768734899
+        ]
+      },
+      {
+        "name": "idle",
+        "source_path": "<project-root>/lelamp_runtime/lelamp/recordings/idle.csv",
+        "row_count": 1798,
+        "source_duration_seconds": 60.093871836000005,
+        "included_duration_seconds": 8.0,
+        "normalized_min": [
+          -36.73469387755102,
+          -64.88798370672097,
+          58.28326180257511,
+          -41.1251212415131,
+          -17.808219178082197
+        ],
+        "normalized_max": [
+          72.9834791059281,
+          -41.751527494908345,
+          99.0557939914163,
+          39.57322987390884,
+          61.48267526188559
+        ]
+      }
+    ],
+    "segments": [
+      {
+        "kind": "motion",
+        "name": "wake_up",
+        "start_frame": 0,
+        "end_frame": 258,
+        "source_duration_seconds": 8.595688623000115,
+        "included_duration_seconds": 8.595688623000115
+      },
+      {
+        "kind": "transition",
+        "name": "wake_up_to_curious",
+        "start_frame": 258,
+        "end_frame": 294,
+        "source_duration_seconds": null,
+        "included_duration_seconds": 1.2
+      },
+      {
+        "kind": "motion",
+        "name": "curious",
+        "start_frame": 294,
+        "end_frame": 471,
+        "source_duration_seconds": 5.884423020999975,
+        "included_duration_seconds": 5.884423020999975
+      },
+      {
+        "kind": "transition",
+        "name": "curious_to_nod",
+        "start_frame": 471,
+        "end_frame": 507,
+        "source_duration_seconds": null,
+        "included_duration_seconds": 1.2
+      },
+      {
+        "kind": "motion",
+        "name": "nod",
+        "start_frame": 507,
+        "end_frame": 694,
+        "source_duration_seconds": 6.221237414000029,
+        "included_duration_seconds": 6.221237414000029
+      },
+      {
+        "kind": "transition",
+        "name": "nod_to_scanning",
+        "start_frame": 694,
+        "end_frame": 730,
+        "source_duration_seconds": null,
+        "included_duration_seconds": 1.2
+      },
+      {
+        "kind": "motion",
+        "name": "scanning",
+        "start_frame": 730,
+        "end_frame": 919,
+        "source_duration_seconds": 6.286166568999988,
+        "included_duration_seconds": 6.286166568999988
+      },
+      {
+        "kind": "transition",
+        "name": "scanning_to_headshake",
+        "start_frame": 919,
+        "end_frame": 955,
+        "source_duration_seconds": null,
+        "included_duration_seconds": 1.2
+      },
+      {
+        "kind": "motion",
+        "name": "headshake",
+        "start_frame": 955,
+        "end_frame": 1099,
+        "source_duration_seconds": 4.783469663000005,
+        "included_duration_seconds": 4.783469663000005
+      },
+      {
+        "kind": "transition",
+        "name": "headshake_to_idle",
+        "start_frame": 1099,
+        "end_frame": 1135,
+        "source_duration_seconds": null,
+        "included_duration_seconds": 1.2
+      },
+      {
+        "kind": "motion",
+        "name": "idle",
+        "start_frame": 1135,
+        "end_frame": 1375,
+        "source_duration_seconds": 60.093871836000005,
+        "included_duration_seconds": 8.0
+      }
+    ],
+    "source_smoothing": "0.18 s centered Hann filter with source endpoints preserved",
+    "transition_smoothing": "quintic smoothstep with exact zero-slope endpoints"
+  },
+  "anchoring": {
+    "root_joint": "lamparm__base_elbow_freejoint",
+    "physical_base_body": "scs215_v5",
+    "physical_base_mesh": "lamp_base",
+    "solve_per_frame": "root transform = T_ref * inverse(T_raw), then mj_forward",
+    "reference_source": "original qpos0 with root freejoint identity",
+    "reference_position_m": [
+      2.084459183992332e-08,
+      -3.225271334381108e-08,
+      0.041800000000000004
+    ],
+    "reference_rotation_matrix": [
+      [
+        -0.9527464714954982,
+        -0.3037666226774721,
+        0.0
+      ],
+      [
+        0.3037666226774721,
+        -0.9527464714954982,
+        0.0
+      ],
+      [
+        0.0,
+        0.0,
+        0.9999999999999999
+      ]
+    ],
+    "reference_base_mesh_world_aabb_m": {
+      "lower": [
+        -0.09499998465976986,
+        -0.08000008404581178,
+        -1.4589055873093226e-08
+      ],
+      "upper": [
+        0.0950000730389772,
+        0.07999997597392045,
+        0.03999999938343589
+      ]
+    },
+    "maximum_measured_translation_drift_m": 4.904238453960478e-17,
+    "maximum_measured_orientation_drift_rad": 8.588911026162141e-16
+  },
+  "composition": {
+    "camera": {
+      "lookat": [
+        -0.018342622660281763,
+        -0.04535871523314866,
+        0.2772652195100765
+      ],
+      "distance": 1.095787459806443,
+      "azimuth": -55.0,
+      "elevation": -25.0
+    },
+    "whole_motion_visible_aabb_m": {
+      "lower": [
+        -0.24603950510055667,
+        -0.2870070725762188,
+        -1.458905591472659e-08
+      ],
+      "upper": [
+        0.20935425977999314,
+        0.1962896421099215,
+        0.5345304536092089
+      ]
+    },
+    "collision_geom_group_3_visible": false,
+    "ground": "solid studio ground configured in memory only",
+    "background": "neutral gradient skybox configured in memory only",
+    "material_emission": 0.0
+  },
+  "preview": {
+    "path": "<project-root>/AILamp/output/video/LeLamp_MuJoCo_Preview_Montage_NoText.png",
+    "sha256": "ae5be1a148a04631a74e31c316110543aaa1e772fe1d29aa016e7dcab7a1fd8f",
+    "dimensions": [
+      1548,
+      582
+    ],
+    "tile_dimensions": [
+      512,
+      288
+    ],
+    "contains_rendered_text": false,
+    "samples": [
+      {
+        "motion": "wake_up",
+        "frame_index": 102,
+        "simulation_time_seconds": 3.4,
+        "selection": "largest normalized displacement from motion start"
+      },
+      {
+        "motion": "curious",
+        "frame_index": 373,
+        "simulation_time_seconds": 12.433333333333334,
+        "selection": "largest normalized displacement from motion start"
+      },
+      {
+        "motion": "nod",
+        "frame_index": 616,
+        "simulation_time_seconds": 20.533333333333335,
+        "selection": "largest normalized displacement from motion start"
+      },
+      {
+        "motion": "scanning",
+        "frame_index": 793,
+        "simulation_time_seconds": 26.433333333333334,
+        "selection": "largest normalized displacement from motion start"
+      },
+      {
+        "motion": "headshake",
+        "frame_index": 1066,
+        "simulation_time_seconds": 35.53333333333333,
+        "selection": "largest normalized displacement from motion start"
+      },
+      {
+        "motion": "idle",
+        "frame_index": 1235,
+        "simulation_time_seconds": 41.166666666666664,
+        "selection": "largest normalized displacement from motion start"
+      }
+    ]
+  },
+  "final_video": {
+    "path": "<project-root>/AILamp/output/video/LeLamp_MuJoCo_Preview_NoText.mp4",
+    "probe_command": "/opt/homebrew/bin/ffprobe -v error -show_streams -show_format -of json '<project-root>/AILamp/output/video/LeLamp_MuJoCo_Preview_NoText.mp4'",
+    "codec_name": "h264",
+    "profile": "High",
+    "pixel_format": "yuv420p",
+    "width": 1920,
+    "height": 1080,
+    "r_frame_rate": "30/1",
+    "avg_frame_rate": "30/1",
+    "frame_count": 1376,
+    "duration_seconds": 45.866667,
+    "stream_types": [
+      "video"
+    ],
+    "size_bytes": 3426397,
+    "sha256": "6de9ed7cff13c76bd7b08bd03a5d471ec32239452c1bfd759f45290d7c429ded",
+    "render_diagnostics": {
+      "ffmpeg_command": "/opt/homebrew/bin/ffmpeg -hide_banner -loglevel error -y -f rawvideo -pixel_format rgb24 -video_size 1920x1080 -framerate 30 -i pipe:0 -map 0:v:0 -an -sn -dn -c:v libx264 -preset medium -crf 18 -pix_fmt yuv420p -r 30 -movflags +faststart -f mp4 '<project-root>/AILamp/output/video/LeLamp_MuJoCo_Preview_NoText.mp4'",
+      "maximum_translation_drift_m": 4.904238453960478e-17,
+      "maximum_orientation_drift_rad": 8.588911026162141e-16
+    },
+    "contains_audio_subtitle_or_data_streams": false,
+    "contains_rendered_text": false
+  },
+  "limitations": [
+    "Kinematic replay only; no torque, contact, stability, or dynamics claim.",
+    "RANGE_M100_100 to MJCF-limit mapping is not a measured real-servo calibration.",
+    "No real hardware, camera, microphone, serial bus, network service, or API was used.",
+    "Visual review is still required for identity, composition, clipping, and intersections."
+  ]
+}
