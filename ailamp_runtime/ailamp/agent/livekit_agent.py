@@ -51,7 +51,7 @@ class DryRunMotorService:
 class AILampToolbox:
     def __init__(self, config_path: str, *, led_service=None, motor_service=None):
         self.config = load_hardware_config(config_path)
-        self.behavior = BehaviorService.from_config(self.config)
+        self.behavior = BehaviorService()
         self.decision = DecisionService(behavior=self.behavior)
         self.last_event = VisionEvent(VisionEventType.NO_PERSON)
         self.vision_state = VisionStateStore(self.config.runtime.vision_state_file)
@@ -59,8 +59,9 @@ class AILampToolbox:
         self.led = led_service or LEDSerialService(self.config.led.port, self.config.led.count, self.config.led.baudrate)
         self.motors = motor_service or MotorService(
             self.config.motors.port,
-            self.config.system.project_name.lower(),
+            self.config.motors.lamp_id,
             self.recordings.recordings_dir,
+            fps=self.config.motors.fps,
         )
         self._outputs_connected = False
 

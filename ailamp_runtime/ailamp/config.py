@@ -23,8 +23,19 @@ class ControllerConfig:
 
 
 @dataclass(frozen=True)
+class SoftwareConfig:
+    target_os: str
+    jetpack: str
+    python: str
+    install_extra: str
+    vision_runtime: str
+    simulation_runtime: str
+
+
+@dataclass(frozen=True)
 class MotorConfig:
     port: str
+    lamp_id: str
     driver_model: str
     servo_model: str
     servo_quantity: int
@@ -46,6 +57,7 @@ class LEDConfig:
 
 @dataclass(frozen=True)
 class PowerConfig:
+    jetson_supply: str
     servo_supply: str
     led_supply: str
     emergency_switch: str
@@ -99,6 +111,8 @@ class AudioConfig:
     speaker_model: str
     input_device: str
     output_device: str
+    input_enabled: bool = True
+    output_enabled: bool = True
 
 
 @dataclass(frozen=True)
@@ -116,15 +130,15 @@ class RuntimeConfig:
 
 
 @dataclass(frozen=True)
-class BirthdayConfig:
+class BrainConfig:
     enabled: bool
-    month: int
-    day: int
-    message: str
-    motion: str
-    rgb: tuple[int, int, int]
-    state_file: str
-    speech_command: str
+    provider: str
+    model: str
+    interval_s: float
+    timeout_s: float
+    plan_ttl_s: float
+    max_calls: int
+    image_max_px: int
 
 
 @dataclass(frozen=True)
@@ -135,16 +149,10 @@ class SimulationConfig:
 
 
 @dataclass(frozen=True)
-class BehaviorEntry:
-    """One row of the [behavior_map] config: motion CSV name + LED RGB."""
-    motion: str
-    rgb: tuple[int, int, int]
-
-
-@dataclass(frozen=True)
 class HardwareConfig:
     system: SystemConfig
     controller: ControllerConfig
+    software: SoftwareConfig
     power: PowerConfig
     motors: MotorConfig
     led: LEDConfig
@@ -153,10 +161,9 @@ class HardwareConfig:
     audio: AudioConfig
     voice: VoiceConfig
     runtime: RuntimeConfig
-    birthday: BirthdayConfig
+    brain: BrainConfig
     simulation: SimulationConfig
     hardware_bom: dict[str, BOMItem]
-    behavior_map: dict[str, BehaviorEntry] | None = None
 
 
 def _resolve_config_path(path: str | Path) -> Path:
@@ -171,7 +178,26 @@ def load_hardware_config(path: str | Path) -> HardwareConfig:
     with config_path.open("rb") as handle:
         raw: dict[str, Any] = tomllib.load(handle)
 
-    birthday_raw = raw["birthday"]
+    motor_raw = {
+        "lamp_id": raw.get("system", {}).get("project_name", "AILamp").lower(),
+        **raw["motors"],
+    }
+    audio_raw = {
+        "input_enabled": True,
+        "output_enabled": True,
+        **raw["audio"],
+    }
+    brain_raw = {
+        "enabled": False,
+        "provider": "openai",
+        "model": raw.get("vision", {}).get("api_model", "gpt-4.1-mini"),
+        "interval_s": 3.0,
+        "timeout_s": 10.0,
+        "plan_ttl_s": 8.0,
+        "max_calls": 200,
+        "image_max_px": 512,
+    }
+    brain_raw.update(raw.get("brain", {}))
     vision_raw = {
         "backend": "local_yolo",
         "api_enabled": False,
@@ -183,34 +209,19 @@ def load_hardware_config(path: str | Path) -> HardwareConfig:
     }
     vision_raw.update(raw["vision"])
 
-    behavior_map_raw = raw.get("behavior_map") or {}
-    behavior_map = {
-        event_key: BehaviorEntry(motion=str(entry["motion"]), rgb=tuple(int(c) for c in entry["rgb"]))
-        for event_key, entry in behavior_map_raw.items()
-    } or None
-
     return HardwareConfig(
         system=SystemConfig(**raw["system"]),
         controller=ControllerConfig(**raw["controller"]),
+        software=SoftwareConfig(**raw["software"]),
         power=PowerConfig(**raw["power"]),
-        motors=MotorConfig(**raw["motors"]),
+        motors=MotorConfig(**motor_raw),
         led=LEDConfig(**raw["led"]),
         camera=CameraConfig(**raw["camera"]),
         vision=VisionConfig(**vision_raw),
-        audio=AudioConfig(**raw["audio"]),
+        audio=AudioConfig(**audio_raw),
         voice=VoiceConfig(**raw["voice"]),
         runtime=RuntimeConfig(**raw["runtime"]),
-        birthday=BirthdayConfig(
-            enabled=birthday_raw["enabled"],
-            month=birthday_raw["month"],
-            day=birthday_raw["day"],
-            message=birthday_raw["message"],
-            motion=birthday_raw["motion"],
-            rgb=tuple(birthday_raw["rgb"]),
-            state_file=birthday_raw["state_file"],
-            speech_command=birthday_raw["speech_command"],
-        ),
+        brain=BrainConfig(**brain_raw),
         simulation=SimulationConfig(**raw["simulation"]),
         hardware_bom={key: BOMItem(**value) for key, value in raw["hardware_bom"].items()},
-        behavior_map=behavior_map,
     )

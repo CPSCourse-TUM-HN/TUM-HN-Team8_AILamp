@@ -1,11 +1,7 @@
 from __future__ import annotations
 
-import logging
 from dataclasses import dataclass
 from typing import Iterable, Optional
-
-
-logger = logging.getLogger(__name__)
 
 
 RGB = tuple[int, int, int]
@@ -57,19 +53,20 @@ class LEDSerialService:
         import serial  # type: ignore
 
         self._serial = serial.Serial(self.port, self.baudrate, timeout=self.timeout)
-        logger.info("LEDSerialService connected: port=%s baud=%d", self.port, self.baudrate)
 
     def close(self) -> None:
         if self._serial is not None:
             self._serial.close()
             self._serial = None
-            logger.info("LEDSerialService closed")
 
     def send(self, command: bytes) -> str:
         if self._serial is None:
             raise RuntimeError("LEDSerialService is not connected")
         self._serial.write(command)
-        return self._serial.readline().decode(errors="ignore").strip()
+        response = self._serial.readline().decode(errors="ignore").strip()
+        if response.startswith("ERR") or response == "":
+            raise RuntimeError(f"LED controller rejected command: {response or '<empty response>'}")
+        return response
 
     def ping(self) -> str:
         return self.send(self.protocol.ping())
@@ -82,4 +79,3 @@ class LEDSerialService:
 
     def brightness(self, value: int) -> str:
         return self.send(self.protocol.brightness(value))
-

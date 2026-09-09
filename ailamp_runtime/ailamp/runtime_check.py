@@ -19,6 +19,7 @@ def run_runtime_checks(
     *,
     include_voice: bool = False,
     include_motor_runtime: bool = False,
+    offline: bool = False,
     env: dict[str, str] | None = None,
 ) -> list[CheckResult]:
     environ = os.environ if env is None else env
@@ -28,6 +29,9 @@ def run_runtime_checks(
 
     results = [
         CheckResult("runtime.profile", bool(config.system.platform), config.system.platform),
+        CheckResult("runtime.target_os", bool(config.software.target_os), config.software.target_os),
+        CheckResult("runtime.python", bool(config.software.python), config.software.python),
+        CheckResult("runtime.install_extra", bool(config.software.install_extra), config.software.install_extra),
         CheckResult("runtime.package", find_spec("ailamp.cli") is not None, "ailamp.cli"),
         CheckResult(
             "runtime.recordings",
@@ -42,7 +46,7 @@ def run_runtime_checks(
         _outputs_writable_check(config),
     ]
 
-    if config.vision.backend == "api_hybrid":
+    if not offline and (config.vision.backend == "api_hybrid" and config.vision.api_enabled or config.brain.enabled):
         has_key = bool(environ.get("OPENAI_API_KEY"))
         results.append(
             CheckResult(
@@ -51,21 +55,31 @@ def run_runtime_checks(
                 "set" if has_key else "missing OPENAI_API_KEY",
             )
         )
+    elif offline:
+        results.append(CheckResult("runtime.openai_api_key", True, "offline mode; OPENAI_API_KEY not required"))
 
     if include_voice:
-        results.extend(
-            [
-                _module_check("runtime.voice.livekit", "livekit.agents"),
-                _module_check("runtime.voice.openai", "openai"),
-                _module_check("runtime.voice.dotenv", "dotenv"),
-            ]
-        )
+        if not config.voice.enabled or not (config.audio.input_enabled and config.audio.output_enabled):
+            results.append(CheckResult("runtime.voice.disabled", True, "voice/audio deliberately disabled in this profile"))
+        else:
+            results.extend(
+                [
+                    _module_check("runtime.voice.livekit", "livekit.agents"),
+                    _module_check("runtime.voice.openai", "openai"),
+                    _module_check("runtime.voice.dotenv", "dotenv"),
+                    _module_check("runtime.voice.sounddevice", "sounddevice"),
+                ]
+            )
 
     if include_motor_runtime:
         results.append(
-            _module_check(
-                "runtime.motor_runtime.lelamp",
-                "lelamp.service.motors.animation_service",
+            _first_available_module_check(
+                "runtime.motor_runtime.lelamp_follower",
+                (
+                    "lelamp.robots.lelamp_follower",
+                    "lelamp.robot.lelamp_follower",
+                    "lelamp.service.motors.lelamp_follower",
+                ),
             )
         )
 
@@ -78,6 +92,16 @@ def _module_check(name: str, module_name: str) -> CheckResult:
     except ModuleNotFoundError:
         available = False
     return CheckResult(name, available, module_name)
+
+
+def _first_available_module_check(name: str, module_names: tuple[str, ...]) -> CheckResult:
+    for module_name in module_names:
+        try:
+            if find_spec(module_name) is not None:
+                return CheckResult(name, True, module_name)
+        except ModuleNotFoundError:
+            continue
+    return CheckResult(name, False, ",".join(module_names))
 
 
 def _outputs_writable_check(config: HardwareConfig) -> CheckResult:

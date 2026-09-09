@@ -6,7 +6,8 @@ from ailamp.models import VisionEventType
 ADAPTER_PRINT_FILES = {
     "AILamp_LampBase_Electronics_Shell.3mf",
     "AILamp_LampBase_Electronics_Cover.3mf",
-    "AILamp_Jetson_Nano_Base_Tray.3mf",
+    "AILamp_Base_Arm_Link_Boot.3mf",
+    "AILamp_Jetson_Orin_Base_Tray.3mf",
     "AILamp_Electronics_Side_Deck.3mf",
     "AILamp_Cable_Clip_6mm.3mf",
     "AILamp_Cable_Clip_10mm.3mf",
@@ -15,6 +16,7 @@ ADAPTER_PRINT_FILES = {
 ADAPTER_VISUAL_NAMES = {
     "ailamp_integrated_base_shell_visual",
     "ailamp_integrated_base_cover_visual",
+    "ailamp_base_arm_link_boot_visual",
     "ailamp_cable_clip_6mm_visual",
     "ailamp_cable_clip_10mm_visual",
 }
@@ -49,11 +51,24 @@ def test_assembly_docs_include_adapter_installation_and_fit_rules():
     assert "不要切割 `LampHead.3mf`" in chinese
     assert "slightly loose" in english
     assert "不要卡死" in chinese
-    # v7.3-C.1: dropped strict v6-era doc text checks (190x230x48 shell, 92x98x18
-    # collar, raised arm-mount collar, corner screws +/-82). Dimension verification
-    # lives in tests/test_ailamp_adapters.py where it asserts directly against the
-    # generator constants instead of grepping prose. The Chinese doc also uses ×
-    # (U+00D7) where the English uses 'x', so dimension-as-text checks are fragile.
+    assert "AILamp base replacement grows the base to 220 x 300 x 66 mm" in (
+        root / "docs/en/1-3d-print.md"
+    ).read_text()
+    assert "AILamp 替换底座扩大到 220 x 300 x 66 mm" in (
+        root / "docs/zh/1-3D打印.md"
+    ).read_text()
+    assert "replace the original base" in english
+    assert "替代原底座" in chinese
+    assert "x +/-96 mm, y -106 mm and y +166 mm" in english
+    assert "x 方向 +/-96 mm、y 方向 -106 mm 和 +166 mm" in chinese
+    assert "raised arm-mount collar" in english
+    assert "凸起灯臂固定座" in chinese
+    assert "112 x 124 x 20 mm" in (root / "docs/en/1-3d-print.md").read_text()
+    assert "112 x 124 x 20 mm" in (root / "docs/zh/1-3D打印.md").read_text()
+    assert "116 x 104 mm" in english
+    assert "116 x 104 mm" in chinese
+    assert "58 x 23 mm" in english
+    assert "58 x 23 mm" in chinese
     assert "ailamp hardware-check" in english
     assert "ailamp hardware-check" in chinese
     assert "ailamp led-test" in english
@@ -85,7 +100,7 @@ def test_top_level_docs_describe_adapter_kit():
     assert "3D/AILamp_Adapters/" in readme
     assert "2-manifold" in readme
     assert "Generated AILamp adapter kit" in notice
-    assert "replacement-base STL mesh visuals for the Jetson Nano electronics layout" in notice
+    assert "replacement-base STL mesh visuals for the selected Jetson electronics layout" in notice
 
 
 def test_assembly_and_runtime_docs_include_nano_acceptance_flow():
@@ -103,8 +118,11 @@ def test_assembly_and_runtime_docs_include_nano_acceptance_flow():
 
     required_phrases = [
         "runtime-check",
+        "scripts/check_jetson_nano_environment.sh",
+        "JetPack 4.6",
+        "Ubuntu 18.04",
         "sim-check",
-        "agent --with-outputs",
+        "web-control --brain --vision --with-outputs",
         "Jetson Nano",
         "Do not run `--with-outputs` before `led-test` and `motor-test` pass",
         "不要在 `led-test` 和 `motor-test` 通过前运行 `--with-outputs`",

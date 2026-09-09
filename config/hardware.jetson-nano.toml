@@ -8,7 +8,16 @@ mpn = "945-13450-0000-100"
 storage = "Not used on basic Jetson Nano Developer Kit; boot from microSD"
 system_card = "SanDisk Ultra microSDXC 64GB UHS-I"
 
+[software]
+target_os = "NVIDIA JetPack 4.6.x / Jetson Linux R32.x, Ubuntu 18.04 based"
+jetpack = "JetPack 4.6.1 SD card image for Jetson Nano Developer Kit; R32.7.6 is the latest Nano BSP line when flashing manually"
+python = "AILamp Python >=3.11; reuse the working LeLamp Python environment for ST3215 playback because upstream currently requires Python >=3.12"
+install_extra = "nano"
+vision_runtime = "OpenAI API-hybrid vision and opt-in OpenAI brain; no local YOLO, pose model, microphone, or speaker on Jetson Nano"
+simulation_runtime = "MuJoCo runs on Mac/PC only, not on Jetson Nano"
+
 [power]
+jetson_supply = "Jetson Nano 5V 4A DC barrel jack power supply, 5.5mm x 2.1mm center-positive, with J48 jumper cap"
 servo_supply = "MEAN WELL GST120A12-P1J, 12V 10A 120W"
 led_supply = "MEAN WELL GST60A05-P1J, 5V 6A 30W"
 emergency_switch = "12V 10A DC inline switch / emergency stop switch"
@@ -20,6 +29,8 @@ signal_wire = "24AWG silicone wire"
 
 [motors]
 port = "/dev/ttyACM0"
+# Existing calibrated LeLamp follower identity. Keep stable; do not recalibrate unless the user explicitly chooses to.
+lamp_id = "ailamp"
 driver_model = "Waveshare Servo Driver with ESP32, SKU 21593"
 servo_model = "Waveshare ST3215 Servo, 30kg.cm @ 12V, SKU 22414"
 servo_quantity = 5
@@ -37,7 +48,7 @@ power_supply = "MEAN WELL GST60A05-P1J, 5V 6A 30W"
 logic_level_shifter = "TXS0108E 8-Channel Logic Level Converter Module"
 
 [camera]
-model = "Arducam UB0234, 2MP OV2710 USB2.0 UVC Camera, 1080p, M12 lens"
+model = "Arducam UB0234, 2D 2MP OV2710 USB2.0 UVC Camera, 1080p, M12 lens; no depth camera required"
 device = 0
 device_path = "/dev/video0"
 width = 640
@@ -64,96 +75,32 @@ far_area_ratio = 0.02
 far_depth_m = 3.0
 
 [audio]
-input_model = "Seeed Studio ReSpeaker XVF3800 USB 4-Mic Array with Case, Product 6490"
-speaker_model = "Seeed Studio Mono Enclosed Speaker, 4 ohm 5W"
-input_device = "auto"
-output_device = "auto"
+input_enabled = false
+output_enabled = false
+input_model = "Optional future upgrade: Seeed Studio ReSpeaker XVF3800 USB 4-Mic Array with Case, Product 6490"
+speaker_model = "Optional future upgrade: Seeed Studio Mono Enclosed Speaker, 4 ohm 5W"
+input_device = "disabled"
+output_device = "disabled"
 
 [voice]
 provider = "openai"
 transport = "livekit"
-enabled = true
+enabled = false
 
 [runtime]
 vision_state_file = "outputs/vision_state.json"
 vision_interval_s = 0.2
 action_cooldown_s = 1.5
 
-# Behavior table — maps each vision event to a CSV recording name and RGB light color.
-# Edit this section to retune behavior without touching Python code.
-[behavior_map.no_person]
-motion = "scanning"
-rgb = [30, 30, 80]
-
-[behavior_map.person_left]
-motion = "headshake"
-rgb = [80, 120, 255]
-
-[behavior_map.person_center]
-motion = "nod"
-rgb = [255, 180, 80]
-
-[behavior_map.person_right]
-motion = "scanning"
-rgb = [80, 120, 255]
-
-[behavior_map.person_close]
-motion = "shy"
-rgb = [255, 80, 120]
-
-[behavior_map.person_far]
-motion = "curious"
-rgb = [80, 255, 160]
-
-[behavior_map.person_left_seat]
-motion = "idle"
-rgb = [30, 30, 80]
-
-[behavior_map.gesture_left]
-motion = "headshake"
-rgb = [90, 150, 255]
-
-[behavior_map.gesture_right]
-motion = "scanning"
-rgb = [90, 150, 255]
-
-[behavior_map.gesture_up]
-motion = "curious"
-rgb = [180, 220, 255]
-
-[behavior_map.gesture_down]
-motion = "idle"
-rgb = [180, 220, 255]
-
-[behavior_map.posture_studying]
-motion = "idle"
-rgb = [255, 235, 190]
-
-[behavior_map.looking_at_lamp]
-motion = "nod"
-rgb = [255, 210, 130]
-
-[behavior_map.expression_smile]
-motion = "happy_wiggle"
-rgb = [255, 210, 130]
-
-[behavior_map.expression_tired]
-motion = "idle"
-rgb = [255, 235, 190]
-
-[behavior_map.expression_neutral]
-motion = "idle"
-rgb = [180, 220, 255]
-
-[birthday]
-enabled = true
-month = 5
-day = 8
-message = "Happy birthday, Yugu!"
-motion = "happy_wiggle"
-rgb = [255, 180, 80]
-state_file = "outputs/birthday_state.json"
-speech_command = "auto"
+[brain]
+enabled = false
+provider = "openai"
+model = "gpt-4.1-mini"
+interval_s = 3.0
+timeout_s = 10.0
+plan_ttl_s = 8.0
+max_calls = 200
+image_max_px = 512
 
 [simulation]
 model_path = "simulation/ailamp_scene.xml"
@@ -170,6 +117,10 @@ quantity = "0"
 
 [hardware_bom.system_card]
 part = "SanDisk Ultra microSDXC 64GB UHS-I"
+quantity = "1"
+
+[hardware_bom.jetson_power]
+part = "Jetson Nano 5V 4A DC barrel jack power supply, 5.5mm x 2.1mm center-positive, with J48 jumper cap"
 quantity = "1"
 
 [hardware_bom.servo]
@@ -209,16 +160,16 @@ part = "1000 uF 6.3V or 10V electrolytic capacitor"
 quantity = "2"
 
 [hardware_bom.camera]
-part = "Arducam UB0234, 2MP OV2710 USB2.0 UVC Camera, 1080p, M12 lens"
+part = "Arducam UB0234, 2D 2MP OV2710 USB2.0 UVC Camera, 1080p, M12 lens; no depth camera required"
 quantity = "1"
 
 [hardware_bom.audio_input]
-part = "Seeed Studio ReSpeaker XVF3800 USB 4-Mic Array with Case, Product 6490"
-quantity = "1"
+part = "Optional future upgrade: Seeed Studio ReSpeaker XVF3800 USB 4-Mic Array with Case, Product 6490"
+quantity = "0"
 
 [hardware_bom.speaker]
-part = "Seeed Studio Mono Enclosed Speaker, 4 ohm 5W"
-quantity = "1"
+part = "Optional future upgrade: Seeed Studio Mono Enclosed Speaker, 4 ohm 5W"
+quantity = "0"
 
 [hardware_bom.emergency_switch]
 part = "12V 10A DC inline switch / emergency stop switch"

@@ -1,47 +1,79 @@
 # 4. Runtime Setup
 
-## Install
+## Jetson Nano OS
 
-```bash
-cd ~/projects/AILamp
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -e ".[hardware,simulation,voice,test]"
+Use the NVIDIA Jetson Nano Developer Kit 4GB software stack, not the upstream LeLamp Raspberry Pi OS stack.
+
+```text
+Target board -> NVIDIA Jetson Nano Developer Kit 4GB, MPN 945-13450-0000-100
+Target OS -> NVIDIA JetPack 4.6.x / Jetson Linux R32.x, Ubuntu 18.04 based
+Recommended first flash -> JetPack 4.6.1 SD card image for Jetson Nano Developer Kit
+Power -> 5V 4A barrel jack, 5.5mm x 2.1mm center-positive, J48 jumper installed
 ```
 
-Jetson Nano 4GB API-hybrid install:
+Do not install Raspberry Pi OS, Pi Camera packages, or ReSpeaker HAT overlays. The current AILamp profile has no microphone and no speaker.
+
+## Install AILamp Runtime
+
+Run the read-only environment diagnostic first:
+
+```bash
+scripts/check_jetson_nano_environment.sh
+```
+
+Use the already working LeLamp playback environment for physical output. AILamp supports Python >=3.11 for software preview, but the local upstream LeLamp runtime currently requires Python >=3.12, so do not blindly rebuild Python or overwrite calibration.
 
 ```bash
 cd ~/projects/AILamp
-python3.11 -m venv .venv
-source .venv/bin/activate
+source /path/to/working/lelamp-env/bin/activate
 pip install -e ".[nano,test]"
-export OPENAI_API_KEY=...
 ```
 
-Do not install the local YOLO pose stack, MuJoCo, or local large models on the Jetson Nano profile.
+The Nano extra installs OpenAI/API-hybrid support, USB camera support, and serial support. It does not install LiveKit, sounddevice, local YOLO pose, MuJoCo, or local large models.
 
 ## Configure
 
-Edit the active profile config only if Linux assigns different device paths: `config/hardware.toml` for Orin Nano Super, or `config/hardware.jetson-nano.toml` for Jetson Nano 4GB.
+The active profile is `config/hardware.toml`. Confirm these fields before physical output:
 
-```bash
-ailamp runtime-check
-ailamp hardware-check
-ailamp hardware-check --include-devices
-ailamp --config config/hardware.jetson-nano.toml runtime-check
-ailamp --config config/hardware.jetson-nano.toml runtime-check --include-devices --include-voice
-ailamp --config config/hardware.jetson-nano.toml hardware-check
-ailamp --config config/hardware.jetson-nano.toml hardware-check --include-devices
+```text
+motors.lamp_id -> exact LeLamp follower ID that already plays motions successfully; default "ailamp" is only a placeholder
+motors.port -> ST3215 controller serial port
+led.port -> Pico WH serial port
+camera.device_path -> Arducam USB UVC device
 ```
 
-`runtime-check` validates the Python entrypoint, recordings, Pico firmware file, writable `outputs/`, and `OPENAI_API_KEY` for the Jetson Nano API-hybrid profile. Add `--include-motor-runtime` after installing the upstream LeLamp runtime.
+Use environment variables for model keys only:
+
+```bash
+export OPENAI_API_KEY=...
+```
+
+## Checks
+
+Safe offline checks:
+
+```bash
+ailamp runtime-check --offline
+ailamp hardware-check
+```
+
+After the Jetson is wired:
+
+```bash
+ailamp runtime-check --include-motor-runtime
+ailamp hardware-check --include-devices
+ailamp camera-test
+ailamp led-test
+ailamp motor-test
+```
+
+`runtime-check --include-voice` reports voice/audio as deliberately disabled for this profile. `audio-test` also fails early with an audio-disabled message instead of importing `sounddevice`.
+
+`ailamp motor-test` lists configured ports and bundled recordings; it does not move hardware or prove actual motion.
 
 ## Pico WH Firmware
 
 Copy `firmware/pico_led_controller/code.py` to the CircuitPython drive on the Pico WH.
-
-Pico WH requirements:
 
 ```text
 CircuitPython 9.x for Raspberry Pi Pico WH
@@ -60,24 +92,30 @@ BRIGHTNESS value
 PIXELS r,g,b;r,g,b
 ```
 
-## Jetson Nano Acceptance Flow
+## Current Control Path
 
-Use this order on the Jetson Nano:
-
-```bash
-ailamp --config config/hardware.jetson-nano.toml runtime-check
-ailamp --config config/hardware.jetson-nano.toml hardware-check --include-devices
-ailamp --config config/hardware.jetson-nano.toml camera-test
-ailamp --config config/hardware.jetson-nano.toml audio-test
-ailamp --config config/hardware.jetson-nano.toml led-test
-ailamp --config config/hardware.jetson-nano.toml motor-test
-ailamp --config config/hardware.jetson-nano.toml agent-tools-test --event person_right --offset 0.6 --request "follow me"
-ailamp --config config/hardware.jetson-nano.toml vision-loop --frames 30
-```
-
-Only after those pass:
+Start dry-run first:
 
 ```bash
-ailamp --config config/hardware.jetson-nano.toml vision-loop --with-outputs
-ailamp --config config/hardware.jetson-nano.toml agent --with-outputs
+ailamp web-control
 ```
+
+Then enable the OpenAI brain without camera:
+
+```bash
+OPENAI_API_KEY=... ailamp web-control --brain
+```
+
+Then add camera context:
+
+```bash
+OPENAI_API_KEY=... ailamp web-control --brain --vision
+```
+
+Only after `led-test` and `motor-test` pass:
+
+```bash
+OPENAI_API_KEY=... ailamp web-control --brain --vision --with-outputs
+```
+
+Stop any original LeLamp playback process, `vision-loop`, or voice-agent process before launching physical outputs. The browser must explicitly unlock physical output before commands are sent. Prefer SSH tunneling to the loopback server. If binding to a LAN address, use a concrete Nano LAN IPv4 address, set a strong `AILAMP_CONTROL_TOKEN`, and use only a trusted network.

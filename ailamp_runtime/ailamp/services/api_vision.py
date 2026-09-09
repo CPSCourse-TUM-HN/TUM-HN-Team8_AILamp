@@ -3,15 +3,11 @@ from __future__ import annotations
 import base64
 from dataclasses import replace
 import json
-import logging
 import re
 import time
 from typing import Callable
 
 from ailamp.models import VisionEvent, VisionEventType
-
-
-logger = logging.getLogger(__name__)
 
 
 SUPPORTED_API_EVENTS = {
@@ -77,9 +73,7 @@ class APIVisionService:
         try:
             event = self._request_event(frame)
         except Exception as exc:  # noqa: BLE001 - runtime should degrade safely on API/network errors.
-            logger.warning("OpenAI vision call failed: %s", exc, exc_info=True)
             if self._last_event is not None and now - self._last_event_at <= self.event_ttl_s:
-                logger.info("serving cached vision event (age %.2fs)", now - self._last_event_at)
                 return replace(self._last_event, semantic_reason=f"cached_after_api_error:{exc}")
             return VisionEvent(VisionEventType.NO_PERSON, semantic_reason=f"api_error:{exc}")
         self._last_event = event

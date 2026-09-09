@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import argparse
-from datetime import date
 from datetime import datetime
 from datetime import timezone
+import os
+from pathlib import Path
 import sys
 import xml.etree.ElementTree as ET
 
@@ -15,7 +16,6 @@ from ailamp.paths import resolve_project_path
 from ailamp.models import BehaviorAction, VisionEvent, VisionEventType
 from ailamp.runtime_check import run_runtime_checks
 from ailamp.services.behavior import BehaviorService
-from ailamp.services.birthday import BirthdayService
 from ailamp.services.decision import DecisionService
 from ailamp.services.led_serial import LEDSerialService
 from ailamp.services.motor import MotorService
@@ -33,6 +33,7 @@ SIM_CHECK_RECORDINGS = ["wake_up", "idle", "nod", "scanning", "shy"]
 SIM_CHECK_ADAPTER_VISUALS = [
     "ailamp_integrated_base_shell_visual",
     "ailamp_integrated_base_cover_visual",
+    "ailamp_base_arm_link_boot_visual",
     "ailamp_cable_clip_6mm_visual",
     "ailamp_cable_clip_10mm_visual",
 ]
@@ -60,6 +61,7 @@ def runtime_check(args) -> int:
         config,
         include_voice=args.include_voice,
         include_motor_runtime=args.include_motor_runtime,
+        offline=args.offline,
     )
     if args.include_devices:
         results.extend(run_device_presence_checks(config))
@@ -92,7 +94,7 @@ def motor_test(args) -> int:
 
 def sim_demo(args) -> int:
     config = _config(args)
-    behavior = BehaviorService.from_config(config)
+    behavior = BehaviorService()
     target_joint_sets = [
         None,
         {"target_slide_x": -0.6, "target_slide_y": -1.5},
@@ -262,6 +264,9 @@ def camera_test(args) -> int:
 
 def audio_test(args) -> int:
     config = _config(args)
+    if not (config.audio.input_enabled or config.audio.output_enabled or config.voice.enabled):
+        print("audio disabled in this hardware profile; use the audio/voice profile before running audio-test")
+        return 1
     from ailamp.services.audio import AudioService
 
     report = AudioService(config.audio.input_model, config.audio.speaker_model).probe()
@@ -269,48 +274,6 @@ def audio_test(args) -> int:
     print("speaker:", report.speaker_model)
     for device in report.devices:
         print(device)
-    return 0
-
-
-def birthday_check(args) -> int:
-    config = _config(args)
-    today = date.fromisoformat(args.today) if args.today else None
-    service = BirthdayService(config.birthday)
-    status = service.status(today, force=args.force)
-    print(
-        "birthday="
-        f"enabled={status.enabled} date={status.today.isoformat()} "
-        f"is_birthday={status.is_birthday} already_played={status.already_played} "
-        f"should_play={status.should_play} message={status.message}"
-    )
-    if not status.should_play:
-        return 0
-
-    if args.with_outputs:
-        led = LEDSerialService(config.led.port, led_count=config.led.count, baudrate=config.led.baudrate)
-        motors = MotorService(
-            config.motors.port,
-            config.system.project_name.lower(),
-            resolve_project_path(config.simulation.recordings_dir),
-        )
-        led.connect()
-        try:
-            led.solid(*status.rgb)
-            motors.connect()
-            try:
-                motors.play(status.motion)
-            finally:
-                motors.close()
-        finally:
-            led.close()
-        print(f"outputs=played motion={status.motion} rgb={status.rgb}")
-
-    if args.speak:
-        print(service.speak(status.message))
-
-    if not args.dry_run:
-        service.mark_played(status.today)
-        print(f"marked_played={status.today.isoformat()}")
     return 0
 
 
@@ -352,7 +315,7 @@ def vision_demo(args) -> int:
             close_area_ratio=config.vision.close_area_ratio,
             far_area_ratio=config.vision.far_area_ratio,
         )
-        action = BehaviorService.from_config(config).decide(event)
+        action = BehaviorService().decide(event)
         print(f"event={event.event_type.value} confidence={event.confidence:.2f} motion={action.motion} rgb={action.rgb}")
     finally:
         camera.close()
@@ -379,9 +342,65 @@ def vision_loop(args) -> int:
 
 
 def agent(args) -> int:
+    config = _config(args)
+    if not config.voice.enabled:
+        print("voice agent is disabled in this no-audio profile; use `ailamp web-control --brain` for the primary console")
+        return 1
     from ailamp.agent.livekit_agent import run_agent
 
     run_agent(args.config, with_outputs=args.with_outputs)
+    return 0
+
+
+def web_control(args) -> int:
+    config = _config(args)
+    token = os.environ.get(args.token_env) if args.token_env else None
+    if args.host in {"", "0.0.0.0", "::"}:
+        print("web-control requires a concrete host; use 127.0.0.1 or the Nano LAN IPv4 address")
+        return 2
+    if args.host not in {"127.0.0.1", "localhost", "::1"}:
+        if not token or len(token) < 32:
+            print(f"non-loopback bind requires a strong token in {args.token_env}")
+            return 2
+    from ailamp.web import create_server
+
+    try:
+        server = create_server(
+            (args.host, args.port),
+            config,
+            with_outputs=args.with_outputs,
+            brain_enabled=args.brain,
+            vision_enabled=args.vision,
+            external_token=token,
+        )
+    except Exception as exc:  # noqa: BLE001 - bind/auth setup failure should be a clean CLI error.
+        print(f"web-control startup failed: {exc}")
+        return 1
+    try:
+        server.runtime.open()
+        server.runtime.start_scheduler()
+    except Exception as exc:  # noqa: BLE001 - failed startup must release earlier resources.
+        close_errors = server.runtime.close()
+        server.server_close()
+        print(f"web-control startup failed: {exc}")
+        if close_errors:
+            print("cleanup errors:", "; ".join(close_errors))
+        return 1
+    print(
+        f"AILamp web-control listening on http://{args.host}:{server.server_address[1]} "
+        f"outputs={'enabled' if args.with_outputs else 'dry-run'} "
+        f"brain={'enabled' if args.brain else 'disabled'} "
+        f"vision={'enabled' if args.vision else 'disabled'}"
+    )
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        return 130
+    finally:
+        close_errors = server.runtime.close()
+        if close_errors:
+            print("cleanup errors:", "; ".join(close_errors))
+        server.server_close()
     return 0
 
 
@@ -393,7 +412,7 @@ def agent_tools_test(args) -> int:
         normalized_offset=args.offset,
         area_ratio=args.area_ratio,
     )
-    decision = DecisionService(behavior=BehaviorService.from_config(config)).decide(event, user_text=args.request)
+    decision = DecisionService().decide(event, user_text=args.request)
     action = BehaviorAction(event=event, motion=decision.motion, rgb=decision.rgb)
     state = VisionSnapshot(
         event=event,
@@ -443,6 +462,7 @@ def build_parser() -> argparse.ArgumentParser:
     runtime.add_argument("--include-devices", action="store_true")
     runtime.add_argument("--include-voice", action="store_true")
     runtime.add_argument("--include-motor-runtime", action="store_true")
+    runtime.add_argument("--offline", action="store_true", help="Do not require cloud API keys")
     runtime.set_defaults(func=runtime_check)
 
     led = subparsers.add_parser("led-test")
@@ -461,6 +481,14 @@ def build_parser() -> argparse.ArgumentParser:
     agent_parser = subparsers.add_parser("agent")
     agent_parser.add_argument("--with-outputs", action="store_true", help="Allow agent tools to drive ST3215 motions and Pico LEDs")
     agent_parser.set_defaults(func=agent)
+    web_parser = subparsers.add_parser("web-control")
+    web_parser.add_argument("--host", default="127.0.0.1")
+    web_parser.add_argument("--port", type=int, default=8765)
+    web_parser.add_argument("--with-outputs", action="store_true", help="Permit physical outputs after browser unlock")
+    web_parser.add_argument("--brain", action="store_true", help="Enable real OpenAI brain calls")
+    web_parser.add_argument("--vision", action="store_true", help="Send camera JPEG frames to the brain")
+    web_parser.add_argument("--token-env", default="AILAMP_CONTROL_TOKEN")
+    web_parser.set_defaults(func=web_control)
     agent_tools = subparsers.add_parser("agent-tools-test")
     agent_tools.add_argument(
         "--event",
@@ -476,14 +504,6 @@ def build_parser() -> argparse.ArgumentParser:
     agent_tools.add_argument("--color", nargs=3, type=int, default=None, help="Set LED color through the toolbox")
     agent_tools.add_argument("--with-outputs", action="store_true", help="Use real ST3215 and Pico outputs")
     agent_tools.set_defaults(func=agent_tools_test)
-
-    birthday = subparsers.add_parser("birthday-check")
-    birthday.add_argument("--today", default=None, help="Override date as YYYY-MM-DD for testing")
-    birthday.add_argument("--force", action="store_true", help="Ignore date and already-played checks")
-    birthday.add_argument("--dry-run", action="store_true", help="Do not write birthday state")
-    birthday.add_argument("--speak", action="store_true", help="Use local speech command when available")
-    birthday.add_argument("--with-outputs", action="store_true", help="Play configured lamp motion and LED color")
-    birthday.set_defaults(func=birthday_check)
 
     sim_demo_parser = subparsers.add_parser("sim-demo")
     sim_demo_parser.add_argument("--render", action="store_true")

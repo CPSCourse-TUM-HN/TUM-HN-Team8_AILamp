@@ -19,7 +19,7 @@ AILamp keeps the upstream LeLamp simulation workflow:
 - Reference URDF: `simulation/robot.urdf`.
 - Mesh assets: `simulation/assets/*.stl`.
 
-`simulation/ailamp_scene.xml` includes a derived LeLamp MJCF, a virtual person target, simulation cameras, and an AILamp replacement base for the selected Jetson Nano developer kit. The derived MJCF removes the original `lamp_base` and `lamp_base_cover` meshes. The fixed shell/cover remain in the scene, while `ailamp_base_arm_link_boot_visual` is inserted at the original LeLamp base-cover transform so the arm root has a moving transition piece instead of floating through a fixed opening.
+`simulation/ailamp_scene.xml` includes a derived LeLamp MJCF, a virtual person target, simulation cameras, and AILamp replacement-base mesh visuals. The derived MJCF removes the original `lamp_base` and `lamp_base_cover` meshes. The fixed shell/cover remain in the scene, while `ailamp_base_arm_link_boot_visual` is inserted at the original LeLamp base-cover transform so the arm root has a moving transition piece instead of floating through a fixed opening.
 
 Adapter visuals in the scene:
 
@@ -36,6 +36,8 @@ These adapter meshes are visual-only base layout references for the electronics.
 Use `ailamp_overview_camera` for whole-lamp renders and `ailamp_sim_camera` for virtual-person interaction views.
 
 `sim-check` is the preferred non-interactive acceptance command. It validates the model load, five-actuator mapping, locked root freejoint, adapter visuals, virtual target events, and core recording playback.
+
+Run MuJoCo on the Mac/PC development machine. Do not deploy MuJoCo to the Jetson Nano 4GB runtime profile.
 
 ## Vision Events
 
@@ -62,29 +64,23 @@ expression_neutral -> idle -> RGB(180, 220, 255)
 
 ```bash
 ailamp camera-test
-ailamp audio-test
 ailamp led-test
 ailamp vision-demo
 ailamp vision-loop --frames 30
 ailamp vision-loop --with-outputs
+ailamp web-control
+OPENAI_API_KEY=... ailamp web-control --brain --vision
+OPENAI_API_KEY=... ailamp web-control --brain --vision --with-outputs
 ailamp agent-tools-test --event person_close --apply
 ailamp agent-tools-test --event posture_studying --apply
 ailamp agent-tools-test --event person_right --offset 0.6 --request "follow me" --apply
-ailamp agent
-ailamp agent --with-outputs
 ```
+
+`web-control` is the current primary no-audio interaction surface. It sends free text and optional fresh camera JPEGs to the OpenAI brain, then executes only validated tool plans through the local controller. Manual buttons are commissioning fallback, not AI.
 
 `vision-demo` captures one frame and prints the detected event, motion, and LED color.
 
-`vision-loop` is the continuous runtime bridge.
-
-Orin profile:
-
-```text
-Arducam UB0234 -> YOLO nano + YOLO pose -> VisionEvent -> DecisionService -> ST3215 + Pico LED
-```
-
-Jetson Nano API-hybrid profile:
+`vision-loop` is the continuous runtime bridge. The default Jetson Nano API-hybrid profile uses:
 
 ```text
 Arducam UB0234 -> low-rate OpenAI vision API -> VisionEvent -> DecisionService -> ST3215 + Pico LED
@@ -93,15 +89,17 @@ Arducam UB0234 -> low-rate OpenAI vision API -> VisionEvent -> DecisionService -
 By default it only prints results and writes `outputs/vision_state.json`. Use `--with-outputs` on the Jetson after `led-test` and `motor-test` pass.
 
 ```bash
-ailamp --config config/hardware.jetson-nano.toml vision-loop --with-outputs
+ailamp vision-loop --with-outputs
 ```
 
-## AI Decision Layer
+The older `config/hardware.orin.toml` profile can run local YOLO person/pose detection on Orin-class hardware, but that is not the selected Jetson Nano 4GB route.
 
-AILamp uses a local decision layer between vision/voice input and hardware output:
+## Legacy Decision Layer
+
+The legacy `vision-loop` path uses a local decision layer between vision events and hardware output:
 
 ```text
-VisionEvent + optional voice request -> DecisionService -> recording OR joint deltas + LED
+VisionEvent + optional text request -> DecisionService -> recording OR joint deltas + LED
 ```
 
 Continuous tracking decisions:
@@ -115,7 +113,7 @@ gesture_up -> wrist_pitch positive delta
 gesture_down -> wrist_pitch negative delta
 ```
 
-Voice intent can override the default visual response:
+Optional text intent can override the default visual response in this legacy commissioning path:
 
 ```text
 "focus" / "study" / "专注" / "学习" -> idle + focus warm light
@@ -134,12 +132,10 @@ Gesture and posture support is heuristic in this version:
 - close person still takes priority and triggers `shy`
 - leaving the seat transitions to `idle`
 
-Run `vision-loop` alongside `agent` when you want the AI tools to use live camera state. The LiveKit/OpenAI agent reads `outputs/vision_state.json` and exposes tools to:
-
-`ailamp agent` uses dry-run motion and light outputs by default. Use `ailamp agent --with-outputs` only after the Jetson Nano hardware acceptance flow has passed.
+Use `web-control --brain --vision` when the AI brain should use live camera state. The older LiveKit agent is an optional future voice path and is disabled by the default no-audio profile.
 
 - describe available tools
-- decide a response from vision plus voice intent
+- decide a response from vision plus text intent
 - read the current vision state
 - suggest the matching motion and LED color
 - apply the current vision behavior to the physical lamp
@@ -147,7 +143,7 @@ Run `vision-loop` alongside `agent` when you want the AI tools to use live camer
 - play a named recording
 - set a custom LED color
 
-`agent-tools-test` exercises the same AI-callable methods without requiring LiveKit or hardware. It uses dry-run outputs by default:
+`agent-tools-test` exercises the legacy AI-callable methods without requiring LiveKit or hardware. It uses dry-run outputs by default:
 
 ```bash
 ailamp agent-tools-test --event person_close --apply --recording nod --color 1 2 3

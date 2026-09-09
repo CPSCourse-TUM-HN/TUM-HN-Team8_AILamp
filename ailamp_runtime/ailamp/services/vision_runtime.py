@@ -3,7 +3,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime, timezone
 import json
-import logging
 from pathlib import Path
 import tempfile
 import time
@@ -20,15 +19,6 @@ from ailamp.services.led_serial import LEDSerialService
 from ailamp.services.motor import JointDeltaCommand, MotorService
 from ailamp.services.pose_gesture import PoseDetectorService, classify_pose_gesture
 from ailamp.services.vision import DetectorService, classify_person_position
-
-
-logger = logging.getLogger(__name__)
-
-
-# Errors classified as transient (camera lost a frame, USB hiccup, etc.) — retry with backoff.
-# Anything else propagates immediately so the operator sees the real failure.
-_TRANSIENT_EXCEPTIONS: tuple[type[BaseException], ...] = (OSError, TimeoutError, ConnectionError)
-_DEFAULT_RETRY_DELAYS_S: tuple[float, ...] = (0.05, 0.2, 0.5)
 
 
 def _utc_now() -> str:
@@ -203,7 +193,6 @@ class VisionRuntime:
         pose_detector: object | None = None,
         api_vision: object | None = None,
         clock: Callable[[], float] = time.monotonic,
-        retry_delays_s: tuple[float, ...] = _DEFAULT_RETRY_DELAYS_S,
     ):
         self.config = config
         self.backend = config.vision.backend
@@ -229,7 +218,7 @@ class VisionRuntime:
                 event_ttl_s=config.vision.api_event_ttl_s,
                 clock=clock,
             )
-        self.behavior = behavior or BehaviorService.from_config(config)
+        self.behavior = behavior or BehaviorService()
         self.decision_service = decision_service or DecisionService(behavior=self.behavior)
         self.state_store = state_store or VisionStateStore(config.runtime.vision_state_file)
         self.led_service = led_service
@@ -239,9 +228,6 @@ class VisionRuntime:
         self._last_applied_event: VisionEventType | None = None
         self._last_applied_time = -1_000_000.0
         self._last_seen_person = False
-        self._retry_delays_s = retry_delays_s
-        self.errors_total = 0
-        self.last_error: str | None = None
 
     def open(self, *, with_outputs: bool = False) -> None:
         self.camera.open()
@@ -263,75 +249,46 @@ class VisionRuntime:
             if self.motor_service is None:
                 self.motor_service = MotorService(
                     self.config.motors.port,
-                    self.config.system.project_name.lower(),
+                    self.config.motors.lamp_id,
                     resolve_project_path(self.config.simulation.recordings_dir),
+                    fps=self.config.motors.fps,
                 )
             self.led_service.connect()
             self.motor_service.connect()
 
     def close(self) -> None:
-        if self.motor_service is not None:
-            self.motor_service.close()
-        if self.led_service is not None:
-            self.led_service.close()
-        self.camera.close()
+        first_error: Exception | None = None
+        for resource in (self.motor_service, self.led_service, self.camera):
+            if resource is None:
+                continue
+            try:
+                resource.close()
+            except Exception as exc:
+                if first_error is None:
+                    first_error = exc
+        if first_error is not None:
+            raise first_error
 
     def step(self, *, apply_outputs: bool = False) -> VisionLoopResult:
-        """Run a supervised step: transient IO errors retry with backoff and emit a NO_PERSON snapshot."""
-        attempts = (None,) + self._retry_delays_s
-        for delay in attempts:
-            if delay is not None:
-                time.sleep(delay)
-            try:
-                return self._step_unsafe(apply_outputs=apply_outputs)
-            except _TRANSIENT_EXCEPTIONS as exc:
-                self.errors_total += 1
-                self.last_error = f"{type(exc).__name__}: {exc}"
-                logger.warning(
-                    "VisionRuntime.step transient error frame=%d attempt_delay=%s err=%s",
-                    self._frame_index, delay, self.last_error,
-                )
-                continue
-        # All retries exhausted — surface a NO_PERSON snapshot tagged with the error so the
-        # state file reflects degraded health, then keep the loop alive.
-        logger.error(
-            "VisionRuntime.step gave up after %d retries frame=%d err=%s",
-            len(self._retry_delays_s), self._frame_index, self.last_error,
-        )
-        event = VisionEvent(VisionEventType.NO_PERSON, semantic_reason=f"step_error:{self.last_error}")
-        decision = AIDecision(
-            event=event, motion="idle", rgb=(30, 30, 80),
-            reason=f"step_error:{self.last_error}",
-            semantic_reason=event.semantic_reason,
-        )
-        action = BehaviorAction(event=event, motion=decision.motion, rgb=decision.rgb)
-        snapshot = VisionSnapshot(
-            event=event, action=action, updated_at=_utc_now(),
-            frame_index=self._frame_index, decision=decision,
-        )
-        try:
-            self.state_store.write(snapshot)
-        except OSError as state_exc:
-            logger.warning("failed to write degraded state snapshot: %s", state_exc)
-        self._frame_index += 1
-        return VisionLoopResult(snapshot=snapshot, applied=False)
-
-    def _step_unsafe(self, *, apply_outputs: bool = False) -> VisionLoopResult:
         frame = self.camera.read()
         if self.backend == "api_hybrid":
             if self.api_vision is None:
                 raise RuntimeError("api_hybrid backend is not configured")
             event = self._choose_event(self.api_vision.detect_event(frame), None)
         else:
-            bbox = self.detector.detect_person(frame) if frame is not None and self.detector is not None else None
-            base_event = classify_person_position(
-                bbox,
-                (self.config.camera.width, self.config.camera.height),
-                left_threshold=self.config.vision.left_threshold,
-                right_threshold=self.config.vision.right_threshold,
-                close_area_ratio=self.config.vision.close_area_ratio,
-                far_area_ratio=self.config.vision.far_area_ratio,
-            )
+            bbox = None
+            if frame is None:
+                base_event = VisionEvent(VisionEventType.NO_PERSON, semantic_reason="no_frame")
+            else:
+                bbox = self.detector.detect_person(frame) if self.detector is not None else None
+                base_event = classify_person_position(
+                    bbox,
+                    (self.config.camera.width, self.config.camera.height),
+                    left_threshold=self.config.vision.left_threshold,
+                    right_threshold=self.config.vision.right_threshold,
+                    close_area_ratio=self.config.vision.close_area_ratio,
+                    far_area_ratio=self.config.vision.far_area_ratio,
+                )
             pose_event = None
             if frame is not None and bbox is not None and self.pose_detector is not None:
                 pose_event = classify_pose_gesture(self.pose_detector.detect_pose(frame))
@@ -378,11 +335,13 @@ class VisionRuntime:
     def _apply_if_needed(self, decision: AIDecision, apply_outputs: bool) -> bool:
         if not apply_outputs:
             return False
+        if decision.event.event_type == VisionEventType.NO_PERSON and decision.event.semantic_reason.startswith(("api_error:", "no_frame")):
+            return False
         if self.led_service is None or self.motor_service is None:
             raise RuntimeError("VisionRuntime outputs are not connected")
         now = self.clock()
         cooldown_elapsed = now - self._last_applied_time >= self.config.runtime.action_cooldown_s
-        if decision.event.event_type == self._last_applied_event and not cooldown_elapsed:
+        if not cooldown_elapsed:
             return False
         if decision.joint_deltas:
             self.motor_service.apply_joint_deltas(decision.joint_deltas)

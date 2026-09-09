@@ -8,12 +8,10 @@ Run:
 ls /dev/ttyACM* /dev/ttyUSB* /dev/video*
 ```
 
-Update `config/hardware.toml`.
-
-For Jetson Nano, update `config/hardware.jetson-nano.toml` and rerun:
+Update `config/hardware.toml`, which is the default Jetson Nano profile, and rerun:
 
 ```bash
-ailamp --config config/hardware.jetson-nano.toml runtime-check --include-devices
+ailamp runtime-check --include-devices
 ```
 
 ## Runtime Check Fails

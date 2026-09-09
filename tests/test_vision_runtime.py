@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import pytest
+
 from ailamp.agent.livekit_agent import AILampToolbox
 from ailamp.config import load_hardware_config
 from ailamp.models import BoundingBox, VisionEvent, VisionEventType
@@ -9,7 +11,7 @@ from ailamp.services.vision_runtime import VisionRuntime, VisionSnapshot, Vision
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-CONFIG_PATH = PROJECT_ROOT / "config/hardware.toml"
+CONFIG_PATH = PROJECT_ROOT / "config/hardware.orin.toml"
 NANO_CONFIG_PATH = PROJECT_ROOT / "config/hardware.jetson-nano.toml"
 
 
@@ -75,6 +77,7 @@ class FakeAPIVision:
 class FakeLed:
     def __init__(self):
         self.colors = []
+        self.closed = False
 
     def connect(self):
         pass
@@ -84,13 +87,14 @@ class FakeLed:
         return "OK"
 
     def close(self):
-        pass
+        self.closed = True
 
 
 class FakeMotor:
     def __init__(self):
         self.recordings = []
         self.joint_deltas = []
+        self.closed = False
 
     def connect(self):
         pass
@@ -103,7 +107,13 @@ class FakeMotor:
         return {}
 
     def close(self):
-        pass
+        self.closed = True
+
+
+class FailingCloseMotor(FakeMotor):
+    def close(self):
+        self.closed = True
+        raise RuntimeError("motor close failed")
 
 
 def config():
@@ -163,6 +173,31 @@ def test_vision_runtime_applies_outputs_with_event_cooldown(tmp_path, monkeypatc
     assert motor.joint_deltas[0][0].joint == "base_yaw"
     assert motor.joint_deltas[0][0].delta_deg < 0
     assert led.colors == [(90, 150, 255), (90, 150, 255)]
+
+
+def test_vision_runtime_applies_global_output_cooldown_for_alternating_events(tmp_path, monkeypatch):
+    monkeypatch.setenv("AILAMP_PROJECT_ROOT", str(tmp_path))
+    led = FakeLed()
+    motor = FakeMotor()
+    times = iter([0.0, 0.1])
+    runtime = VisionRuntime(
+        config(),
+        camera=FakeCamera([object(), object()]),
+        detector=FakeDetector(
+            [
+                BoundingBox(20, 120, 100, 220, 0.9),
+                BoundingBox(520, 120, 100, 220, 0.9),
+            ]
+        ),
+        led_service=led,
+        motor_service=motor,
+        clock=lambda: next(times),
+    )
+
+    assert runtime.step(apply_outputs=True).applied
+    assert runtime.step(apply_outputs=True).applied is False
+    assert len(motor.joint_deltas) == 1
+    assert len(led.colors) == 1
 
 
 def test_vision_runtime_prefers_pose_gesture_over_center_position(tmp_path, monkeypatch):
@@ -246,6 +281,76 @@ def test_vision_runtime_does_not_convert_api_error_to_left_seat(tmp_path, monkey
 
     assert result.snapshot.event.event_type == VisionEventType.NO_PERSON
     assert result.snapshot.event.semantic_reason == "api_error:network down"
+
+
+def test_vision_runtime_does_not_apply_outputs_on_api_error_or_no_frame(tmp_path, monkeypatch):
+    monkeypatch.setenv("AILAMP_PROJECT_ROOT", str(tmp_path))
+    led = FakeLed()
+    motor = FakeMotor()
+    api = FakeAPIVision(
+        [
+            VisionEvent(VisionEventType.NO_PERSON, semantic_reason="api_error:timeout"),
+            VisionEvent(VisionEventType.NO_PERSON, semantic_reason="no_frame"),
+        ]
+    )
+    runtime = VisionRuntime(
+        nano_config(),
+        camera=FakeCamera([b"jpeg", None]),
+        api_vision=api,
+        led_service=led,
+        motor_service=motor,
+    )
+
+    first = runtime.step(apply_outputs=True)
+    second = runtime.step(apply_outputs=True)
+
+    assert first.applied is False
+    assert second.applied is False
+    assert led.colors == []
+    assert motor.recordings == []
+    assert motor.joint_deltas == []
+
+
+def test_local_vision_runtime_no_frame_has_semantic_reason_and_no_outputs(tmp_path, monkeypatch):
+    monkeypatch.setenv("AILAMP_PROJECT_ROOT", str(tmp_path))
+    led = FakeLed()
+    motor = FakeMotor()
+    runtime = VisionRuntime(
+        config(),
+        camera=FakeCamera([None]),
+        detector=FakeDetector([]),
+        led_service=led,
+        motor_service=motor,
+    )
+
+    result = runtime.step(apply_outputs=True)
+
+    assert result.snapshot.event.event_type == VisionEventType.NO_PERSON
+    assert result.snapshot.event.semantic_reason == "no_frame"
+    assert result.applied is False
+    assert led.colors == []
+    assert motor.recordings == []
+    assert motor.joint_deltas == []
+
+
+def test_vision_runtime_close_attempts_all_resources_before_reporting_failure():
+    camera = FakeCamera([])
+    led = FakeLed()
+    motor = FailingCloseMotor()
+    runtime = VisionRuntime(
+        config(),
+        camera=camera,
+        detector=FakeDetector([]),
+        led_service=led,
+        motor_service=motor,
+    )
+
+    with pytest.raises(RuntimeError, match="motor close failed"):
+        runtime.close()
+
+    assert motor.closed
+    assert led.closed
+    assert camera.closed
 
 
 def test_agent_toolbox_reads_shared_vision_state(tmp_path, monkeypatch):

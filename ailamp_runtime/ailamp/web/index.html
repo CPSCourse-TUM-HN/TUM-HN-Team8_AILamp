@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AILamp 无音频 AI 控制台</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f7f7f4;
+      --ink: #202124;
+      --muted: #60646c;
+      --line: #d8dadf;
+      --panel: #ffffff;
+      --accent: #0f766e;
+      --danger: #b42318;
+      --ok: #287a3e;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: var(--bg); color: var(--ink); }
+    header { position: sticky; top: 0; z-index: 2; display: flex; gap: 12px; align-items: center; justify-content: space-between; padding: 12px 16px; background: var(--panel); border-bottom: 1px solid var(--line); }
+    h1 { margin: 0; font-size: 20px; letter-spacing: 0; }
+    main { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.8fr); gap: 16px; padding: 16px; max-width: 1180px; margin: 0 auto; }
+    section { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px; }
+    h2 { margin: 0 0 10px; font-size: 16px; letter-spacing: 0; }
+    button, input, select { font: inherit; }
+    button { border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; background: white; cursor: pointer; }
+    button.primary { background: var(--accent); color: white; border-color: var(--accent); }
+    button.stop { background: var(--danger); color: white; border-color: var(--danger); font-weight: 700; }
+    button:disabled { opacity: .55; cursor: not-allowed; }
+    textarea { width: 100%; min-height: 112px; resize: vertical; padding: 10px; border: 1px solid var(--line); border-radius: 6px; font: inherit; }
+    .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .grid { display: grid; gap: 10px; }
+    .status { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .cell { border-bottom: 1px solid var(--line); padding: 6px 0; min-width: 0; overflow-wrap: anywhere; }
+    .pill { border: 1px solid var(--line); border-radius: 999px; padding: 5px 9px; color: var(--muted); background: #fafafa; }
+    .ok { color: var(--ok); }
+    .bad { color: var(--danger); }
+    .log { min-height: 180px; max-height: 360px; overflow: auto; border: 1px solid var(--line); border-radius: 6px; padding: 10px; background: #fbfbfa; white-space: pre-wrap; }
+    label { display: grid; gap: 5px; color: var(--muted); font-size: 13px; }
+    input[type="number"], input[type="text"], input[type="password"], select { width: 100%; border: 1px solid var(--line); border-radius: 6px; padding: 8px; }
+    .note { color: var(--muted); font-size: 13px; line-height: 1.4; }
+    @media (max-width: 760px) {
+      main { grid-template-columns: 1fr; padding: 10px; }
+      header { align-items: flex-start; flex-direction: column; }
+      .status { grid-template-columns: 1fr; }
+      .row > button { min-height: 42px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>AILamp 无音频 AI 控制台</h1>
+      <div class="row" id="badges"></div>
+    </div>
+    <button class="stop" id="stop">软件停止</button>
+  </header>
+  <main>
+    <section class="grid">
+      <h2>AI 对话与观察</h2>
+      <textarea id="chat" placeholder="我想专心学习，请安静陪着我&#10;用动作表示开心&#10;看着我但动作慢一点"></textarea>
+      <div class="row">
+        <button class="primary" id="send">发送给 AI</button>
+        <button id="observe">AI 观察一次</button>
+        <button id="auto">开启自动观察</button>
+      </div>
+      <div class="log" id="log">等待状态...</div>
+      <p class="note">软件停止会取消当前动作请求，但不是物理断电急停；需要立即断电时使用 12V 电源急停开关。</p>
+    </section>
+    <section class="grid">
+      <h2>连接与状态</h2>
+      <label>LAN 控制令牌<input id="lanToken" type="password" autocomplete="off" placeholder="仅在非本机访问时填写"></label>
+      <div class="status" id="status"></div>
+      <div class="row">
+        <button id="arm">解锁真机输出</button>
+        <button id="disarm">锁定输出</button>
+      </div>
+      <h2>非 AI 调试控件</h2>
+      <label>动作录制<select id="recordings"></select></label>
+      <button id="play">播放录制</button>
+      <div class="row">
+        <label>R<input id="red" type="number" min="0" max="255" value="255"></label>
+        <label>G<input id="green" type="number" min="0" max="255" value="180"></label>
+        <label>B<input id="blue" type="number" min="0" max="255" value="80"></label>
+        <label>亮度<input id="brightness" type="number" min="0" max="255" value="128"></label>
+      </div>
+      <div class="row">
+        <button id="light">设置灯光</button>
+        <button id="clearLight">关闭灯光</button>
+      </div>
+      <div class="row">
+        <button data-mode="manual">手动</button>
+        <button data-mode="focus">专注</button>
+        <button data-mode="rest">休息</button>
+      </div>
+      <label>专注计时（分钟）<input id="timer" type="number" min="1" max="180" value="25"></label>
+    </section>
+  </main>
+  <script>
+    let csrf = "";
+    let autoEnabled = false;
+    const log = document.getElementById("log");
+    const statusEl = document.getElementById("status");
+    const badges = document.getElementById("badges");
+    const recordings = document.getElementById("recordings");
+    const lanToken = document.getElementById("lanToken");
+    const autoButton = document.getElementById("auto");
+    const seenOutcomes = new Map();
+    const seenOutcomeOrder = [];
+    const maxSeenOutcomes = 100;
+
+    function tokenHeader() {
+      const token = lanToken.value.trim();
+      return token ? {"X-AILamp-Token": token} : {};
+    }
+    function write(message) {
+      log.textContent = `${new Date().toLocaleTimeString()} ${message}\n\n${log.textContent}`.slice(0, 5000);
+    }
+    async function api(path, body) {
+      const response = await fetch(path, {
+        method: "POST",
+        headers: {"Content-Type": "application/json", "X-CSRF-Token": csrf, ...tokenHeader()},
+        body: JSON.stringify(body || {})
+      });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error?.message || response.statusText);
+      render(payload);
+      return payload;
+    }
+    function addText(parent, className, text) {
+      const el = document.createElement("div");
+      el.className = className;
+      el.textContent = text;
+      parent.appendChild(el);
+    }
+    function outcomeActions(outcome) {
+      return Array.isArray(outcome.action_results) ? outcome.action_results : (Array.isArray(outcome.actions) ? outcome.actions : []);
+    }
+    function outcomeSignature(outcome) {
+      return JSON.stringify({
+        accepted: outcome.accepted,
+        sent: outcome.sent,
+        completed: outcome.completed,
+        error: outcome.error || "",
+        reply: outcome.reply || "",
+        action_results: outcomeActions(outcome).map(item => ({
+          name: item.name || "action",
+          sent: Boolean(item.sent),
+          completed: Boolean(item.completed),
+          error: item.error || ""
+        }))
+      });
+    }
+    function selectOutcome(payload, controller, brain) {
+      return payload.outcome || controller.last_outcome || brain.last_outcome || null;
+    }
+    function rememberOutcome(outcome) {
+      const requestId = outcome.request_id || "no-request-id";
+      const signature = outcomeSignature(outcome);
+      let signatures = seenOutcomes.get(requestId);
+      if (!signatures) {
+        signatures = new Set();
+        seenOutcomes.set(requestId, signatures);
+      }
+      if (signatures.has(signature)) return false;
+      signatures.add(signature);
+      seenOutcomeOrder.push([requestId, signature]);
+      while (seenOutcomeOrder.length > maxSeenOutcomes) {
+        const [oldRequestId, oldSignature] = seenOutcomeOrder.shift();
+        const oldSignatures = seenOutcomes.get(oldRequestId);
+        if (oldSignatures) {
+          oldSignatures.delete(oldSignature);
+          if (!oldSignatures.size) seenOutcomes.delete(oldRequestId);
+        }
+      }
+      return true;
+    }
+    function renderOutcome(outcome) {
+      if (!outcome || !rememberOutcome(outcome)) return;
+      const actionText = outcomeActions(outcome)
+        .map(item => `${item.name || "action"} sent=${Boolean(item.sent)} completed=${Boolean(item.completed)}${item.error ? ` error=${item.error}` : ""}`)
+        .join("; ");
+      write(`回复：${outcome.reply || ""}\n接收=${outcome.accepted} 发送=${outcome.sent} 完成=${outcome.completed}\n${actionText}\n${outcome.error || ""}`);
+    }
+    function render(payload) {
+      const controller = payload.controller || payload.state || {};
+      const brain = payload.brain || {};
+      csrf = payload.csrf_token || csrf;
+      autoEnabled = Boolean(brain.auto_enabled);
+      autoButton.textContent = autoEnabled ? "关闭自动观察" : "开启自动观察";
+      badges.replaceChildren();
+      [
+        controller.with_outputs ? "真机模式" : "演示模式",
+        controller.armed ? "已解锁" : "未解锁",
+        brain.brain_enabled ? "AI 已启用" : "AI 未启用",
+        brain.inflight ? "AI 忙碌" : "AI 空闲"
+      ].forEach(text => {
+        const el = document.createElement("span");
+        el.className = "pill";
+        el.textContent = text;
+        badges.appendChild(el);
+      });
+      statusEl.replaceChildren();
+      const cameraStatus = brain.camera_error ? `错误：${brain.camera_error}` : (brain.vision_enabled ? "已启用，等待帧验证" : "关闭");
+      const rows = [
+        ["模式", controller.mode || ""],
+        ["Provider", brain.provider || "openai"],
+        ["模型", brain.model || "gpt-4.1-mini"],
+        ["调用", `${brain.api_call_count || 0}/${brain.max_calls || 0}`],
+        ["相机", cameraStatus],
+        ["自动观察", autoEnabled ? "开启" : "关闭"],
+        ["电机", controller.motor_busy ? "动作中" : "空闲"],
+        ["错误", brain.last_error || controller.motor_error || "无"],
+        ["计时", controller.focus_remaining_s == null ? "无" : `${Math.ceil(controller.focus_remaining_s)} 秒`]
+      ];
+      rows.forEach(([key, value]) => addText(statusEl, "cell", `${key}：${value}`));
+      if (Array.isArray(controller.recordings)) {
+        const selected = recordings.value;
+        recordings.replaceChildren();
+        controller.recordings.forEach(name => {
+          const option = document.createElement("option");
+          option.value = name;
+          option.textContent = name;
+          recordings.appendChild(option);
+        });
+        if (selected) recordings.value = selected;
+      }
+      renderOutcome(selectOutcome(payload, controller, brain));
+    }
+    async function refresh() {
+      const response = await fetch("/api/state", {headers: tokenHeader()});
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error?.message || response.statusText);
+      render(payload);
+    }
+    document.getElementById("send").onclick = () => api("/api/chat", {text: document.getElementById("chat").value}).catch(err => write(err.message));
+    document.getElementById("observe").onclick = () => api("/api/observe", {instruction: document.getElementById("chat").value || null}).catch(err => write(err.message));
+    autoButton.onclick = () => api("/api/auto", {enabled: !autoEnabled}).catch(err => write(err.message));
+    document.getElementById("stop").onclick = () => api("/api/stop").catch(err => write(err.message));
+    document.getElementById("arm").onclick = () => api("/api/arm", {enabled: true}).catch(err => write(err.message));
+    document.getElementById("disarm").onclick = () => api("/api/arm", {enabled: false}).catch(err => write(err.message));
+    document.getElementById("play").onclick = () => api("/api/manual", {action: "play_recording", arguments: {name: recordings.value}}).catch(err => write(err.message));
+    document.getElementById("light").onclick = () => api("/api/manual", {action: "set_light", arguments: {red: +red.value, green: +green.value, blue: +blue.value, brightness: +brightness.value}}).catch(err => write(err.message));
+    document.getElementById("clearLight").onclick = () => api("/api/manual", {action: "clear_light", arguments: {}}).catch(err => write(err.message));
+    document.querySelectorAll("[data-mode]").forEach(button => button.onclick = () => {
+      const args = {mode: button.dataset.mode};
+      if (button.dataset.mode === "focus") args.timer_minutes = +timer.value;
+      api("/api/manual", {action: "set_mode", arguments: args}).catch(err => write(err.message));
+    });
+    lanToken.oninput = () => sessionStorage.setItem("ailampTokenPresent", lanToken.value ? "1" : "");
+    refresh().catch(err => write(err.message));
+    setInterval(() => refresh().catch(err => write(err.message)), 2000);
+  </script>
+</body>
+</html>

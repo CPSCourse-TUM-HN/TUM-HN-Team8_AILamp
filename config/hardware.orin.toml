@@ -1,0 +1,209 @@
+[system]
+project_name = "AILamp"
+platform = "jetson"
+
+[controller]
+model = "NVIDIA Jetson Orin Nano Super Developer Kit"
+mpn = "945-13766-0000-000"
+storage = "Samsung 980 NVMe M.2 2280 500GB, MZ-V8V500B"
+system_card = "SanDisk Ultra microSDXC 64GB UHS-I"
+
+[software]
+target_os = "NVIDIA JetPack 6.x / Jetson Linux R36.x, Ubuntu 22.04 based"
+jetpack = "JetPack 6.x for Jetson Orin Nano class hardware"
+python = "Python 3.11 virtual environment"
+install_extra = "hardware,voice"
+vision_runtime = "Local YOLO person and pose detection on Jetson Orin Nano Super"
+simulation_runtime = "MuJoCo can run on Mac/PC; use Orin only for physical runtime unless explicitly testing graphics locally"
+
+[power]
+jetson_supply = "Jetson Orin Nano Super 19V DC barrel jack power supply, 5.5mm x 2.5mm"
+servo_supply = "MEAN WELL GST120A12-P1J, 12V 10A 120W"
+led_supply = "MEAN WELL GST60A05-P1J, 5V 6A 30W"
+emergency_switch = "12V 10A DC inline switch / emergency stop switch"
+barrel_adapter = "5.5mm x 2.1mm DC barrel screw terminal adapter"
+power_connector = "WAGO 221-413 lever connector"
+power_wire_red = "22AWG red silicone wire"
+power_wire_black = "22AWG black silicone wire"
+signal_wire = "24AWG silicone wire"
+
+[motors]
+port = "/dev/ttyACM0"
+lamp_id = "ailamp"
+driver_model = "Waveshare Servo Driver with ESP32, SKU 21593"
+servo_model = "Waveshare ST3215 Servo, 30kg.cm @ 12V, SKU 22414"
+servo_quantity = 5
+fps = 30
+ids = { base_yaw = 1, base_pitch = 2, elbow_pitch = 3, wrist_roll = 4, wrist_pitch = 5 }
+
+[led]
+port = "/dev/ttyACM1"
+controller = "Raspberry Pi Pico WH"
+panel = "Adafruit NeoPixel NeoMatrix 8x8, 64 RGB LED, Product ID 1487"
+count = 64
+baudrate = 115200
+brightness = 128
+power_supply = "MEAN WELL GST60A05-P1J, 5V 6A 30W"
+logic_level_shifter = "TXS0108E 8-Channel Logic Level Converter Module"
+
+[camera]
+model = "Arducam UB0234, 2D 2MP OV2710 USB2.0 UVC Camera, 1080p, M12 lens; no depth camera required"
+device = 0
+device_path = "/dev/video0"
+width = 640
+height = 480
+fps = 30
+pixel_format = "MJPG"
+
+[vision]
+backend = "local_yolo"
+model = "yolov8n.pt"
+pose_model = "yolov8n-pose.pt"
+pose_enabled = true
+api_enabled = false
+api_model = "gpt-4.1-mini"
+api_interval_s = 1.0
+api_image_max_px = 512
+api_timeout_s = 10.0
+api_event_ttl_s = 2.0
+confidence = 0.45
+left_threshold = -0.20
+right_threshold = 0.20
+close_area_ratio = 0.35
+far_area_ratio = 0.02
+far_depth_m = 3.0
+
+[audio]
+input_model = "Seeed Studio ReSpeaker XVF3800 USB 4-Mic Array with Case, Product 6490"
+speaker_model = "Seeed Studio Mono Enclosed Speaker, 4 ohm 5W"
+input_device = "auto"
+output_device = "auto"
+
+[voice]
+provider = "openai"
+transport = "livekit"
+enabled = true
+
+[runtime]
+vision_state_file = "outputs/vision_state.json"
+vision_interval_s = 0.2
+action_cooldown_s = 1.5
+
+[brain]
+enabled = false
+provider = "openai"
+model = "gpt-4.1-mini"
+interval_s = 3.0
+timeout_s = 10.0
+plan_ttl_s = 8.0
+max_calls = 200
+image_max_px = 512
+
+[simulation]
+model_path = "simulation/ailamp_scene.xml"
+recordings_dir = "ailamp_runtime/ailamp/recordings"
+lock_freejoint = true
+
+[hardware_bom.main_controller]
+part = "NVIDIA Jetson Orin Nano Super Developer Kit, MPN 945-13766-0000-000"
+quantity = "1"
+
+[hardware_bom.storage]
+part = "Samsung 980 NVMe M.2 2280 500GB, MZ-V8V500B"
+quantity = "1"
+
+[hardware_bom.system_card]
+part = "SanDisk Ultra microSDXC 64GB UHS-I"
+quantity = "1"
+
+[hardware_bom.jetson_power]
+part = "Jetson Orin Nano Super 19V DC barrel jack power supply, 5.5mm x 2.5mm"
+quantity = "1"
+
+[hardware_bom.servo]
+part = "Waveshare ST3215 Servo, 30kg.cm @ 12V, SKU 22414"
+quantity = "5"
+
+[hardware_bom.servo_driver]
+part = "Waveshare Servo Driver with ESP32, SKU 21593"
+quantity = "1"
+
+[hardware_bom.servo_power]
+part = "MEAN WELL GST120A12-P1J, 12V 10A 120W"
+quantity = "1"
+
+[hardware_bom.led_controller]
+part = "Raspberry Pi Pico WH"
+quantity = "1"
+
+[hardware_bom.led_panel]
+part = "Adafruit NeoPixel NeoMatrix 8x8, 64 RGB LED, Product ID 1487"
+quantity = "1"
+
+[hardware_bom.led_power]
+part = "MEAN WELL GST60A05-P1J, 5V 6A 30W"
+quantity = "1"
+
+[hardware_bom.logic_level_shifter]
+part = "TXS0108E 8-Channel Logic Level Converter Module"
+quantity = "1"
+
+[hardware_bom.led_resistor]
+part = "330 ohm 1/4W resistor"
+quantity = "5"
+
+[hardware_bom.led_capacitor]
+part = "1000 uF 6.3V or 10V electrolytic capacitor"
+quantity = "2"
+
+[hardware_bom.camera]
+part = "Arducam UB0234, 2D 2MP OV2710 USB2.0 UVC Camera, 1080p, M12 lens; no depth camera required"
+quantity = "1"
+
+[hardware_bom.audio_input]
+part = "Seeed Studio ReSpeaker XVF3800 USB 4-Mic Array with Case, Product 6490"
+quantity = "1"
+
+[hardware_bom.speaker]
+part = "Seeed Studio Mono Enclosed Speaker, 4 ohm 5W"
+quantity = "1"
+
+[hardware_bom.emergency_switch]
+part = "12V 10A DC inline switch / emergency stop switch"
+quantity = "1"
+
+[hardware_bom.usb_cable_servo]
+part = "USB-A to USB-C data cable, 0.5m"
+quantity = "1"
+
+[hardware_bom.usb_cable_pico]
+part = "USB-A to Micro-USB data cable, 0.5m"
+quantity = "1"
+
+[hardware_bom.usb_extension]
+part = "USB-A extension cable, 0.3m or 0.5m"
+quantity = "1"
+
+[hardware_bom.servo_extension]
+part = "ST / SC serial bus servo extension cable"
+quantity = "5"
+
+[hardware_bom.power_terminal]
+part = "5.5mm x 2.1mm DC barrel screw terminal adapter"
+quantity = "4"
+
+[hardware_bom.power_connector]
+part = "WAGO 221-413 lever connector"
+quantity = "10"
+
+[hardware_bom.power_wire_red]
+part = "22AWG red silicone wire"
+quantity = "2m"
+
+[hardware_bom.power_wire_black]
+part = "22AWG black silicone wire"
+quantity = "2m"
+
+[hardware_bom.signal_wire]
+part = "24AWG silicone wire"
+quantity = "2m"

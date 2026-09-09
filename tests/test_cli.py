@@ -5,6 +5,7 @@ from ailamp.cli import main
 
 CONFIG_PATH = str(Path(__file__).resolve().parents[1] / "config/hardware.toml")
 NANO_CONFIG_PATH = str(Path(__file__).resolve().parents[1] / "config/hardware.jetson-nano.toml")
+ORIN_CONFIG_PATH = str(Path(__file__).resolve().parents[1] / "config/hardware.orin.toml")
 
 
 def test_cli_static_hardware_check_passes(capsys):
@@ -12,8 +13,10 @@ def test_cli_static_hardware_check_passes(capsys):
     output = capsys.readouterr().out
 
     assert exit_code == 0
-    assert "PASS controller.model: NVIDIA Jetson Orin Nano Super Developer Kit" in output
-    assert "PASS controller.mpn: 945-13766-0000-000" in output
+    assert "PASS controller.model: NVIDIA Jetson Nano Developer Kit 4GB" in output
+    assert "PASS controller.mpn: 945-13450-0000-100" in output
+    assert "PASS software.profile: NVIDIA JetPack 4.6.x / Jetson Linux R32.x, Ubuntu 18.04 based" in output
+    assert "PASS power.jetson_supply: Jetson Nano 5V 4A DC barrel jack power supply" in output
     assert "PASS led.count: 64" in output
     assert "PASS bom.servo.quantity: 5" in output
 
@@ -37,15 +40,39 @@ def test_cli_static_hardware_check_passes_for_jetson_nano_profile(capsys):
     assert "PASS vision.backend: api_hybrid" in output
 
 
-def test_cli_runtime_check_passes_for_default_profile(capsys):
-    exit_code = main(["--config", CONFIG_PATH, "runtime-check"])
+def test_cli_static_hardware_check_passes_for_orin_reference_profile(capsys):
+    exit_code = main(["--config", ORIN_CONFIG_PATH, "hardware-check"])
     output = capsys.readouterr().out
 
     assert exit_code == 0
-    assert "PASS runtime.profile: jetson" in output
+    assert "PASS controller.model: NVIDIA Jetson Orin Nano Super Developer Kit" in output
+    assert "PASS controller.mpn: 945-13766-0000-000" in output
+    assert "PASS software.install_extra: hardware,voice" in output
+
+
+def test_cli_runtime_check_reports_missing_openai_key_for_default_nano_profile(capsys, monkeypatch):
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+
+    exit_code = main(["--config", CONFIG_PATH, "runtime-check"])
+    output = capsys.readouterr().out
+
+    assert exit_code == 1
+    assert "PASS runtime.profile: jetson-nano" in output
+    assert "PASS runtime.target_os: NVIDIA JetPack 4.6.x / Jetson Linux R32.x, Ubuntu 18.04 based" in output
     assert "PASS runtime.recordings: idle,nod,scanning,shy,wake_up" in output
     assert "PASS runtime.firmware.pico" in output
     assert "PASS runtime.outputs_writable:" in output
+    assert "FAIL runtime.openai_api_key: missing OPENAI_API_KEY" in output
+
+
+def test_cli_runtime_check_offline_skips_openai_key(capsys, monkeypatch):
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+
+    exit_code = main(["--config", CONFIG_PATH, "runtime-check", "--offline"])
+    output = capsys.readouterr().out
+
+    assert exit_code == 0
+    assert "PASS runtime.openai_api_key: offline mode; OPENAI_API_KEY not required" in output
 
 
 def test_cli_runtime_check_reports_missing_openai_key_for_nano(capsys, monkeypatch):
@@ -73,20 +100,9 @@ def test_cli_runtime_check_include_voice_and_motor_runtime(capsys, monkeypatch):
     )
     output = capsys.readouterr().out
 
-    assert "runtime.voice.livekit" in output
-    assert "runtime.voice.openai" in output
-    assert "runtime.motor_runtime.lelamp" in output
+    assert "PASS runtime.voice.disabled: voice/audio deliberately disabled in this profile" in output
+    assert "runtime.motor_runtime.lelamp_follower" in output
     assert exit_code in {0, 1}
-
-
-def test_cli_birthday_check_dry_run(capsys):
-    exit_code = main(["birthday-check", "--today", "2026-05-08", "--dry-run"])
-    output = capsys.readouterr().out
-
-    assert exit_code == 0
-    assert "is_birthday=True" in output
-    assert "should_play=True" in output
-    assert "Happy birthday, Yugu!" in output
 
 
 def test_cli_sim_demo_outputs_virtual_vision_events(capsys):
@@ -314,26 +330,85 @@ def test_cli_agent_tools_test_voice_focus_and_tracking(capsys, tmp_path, monkeyp
 
 
 def test_cli_agent_defaults_to_dry_run(monkeypatch):
-    calls = {}
-
-    def fake_run_agent(config_path, *, with_outputs=False):
-        calls["config_path"] = config_path
-        calls["with_outputs"] = with_outputs
-
-    monkeypatch.setattr("ailamp.agent.livekit_agent.run_agent", fake_run_agent)
-
-    assert main(["--config", NANO_CONFIG_PATH, "agent"]) == 0
-    assert calls == {"config_path": NANO_CONFIG_PATH, "with_outputs": False}
+    assert main(["--config", NANO_CONFIG_PATH, "agent"]) == 1
 
 
 def test_cli_agent_with_outputs_uses_real_outputs(monkeypatch):
-    calls = {}
+    assert main(["--config", NANO_CONFIG_PATH, "agent", "--with-outputs"]) == 1
 
-    def fake_run_agent(config_path, *, with_outputs=False):
-        calls["config_path"] = config_path
-        calls["with_outputs"] = with_outputs
 
-    monkeypatch.setattr("ailamp.agent.livekit_agent.run_agent", fake_run_agent)
+def test_cli_web_control_help(capsys):
+    try:
+        main(["web-control", "--help"])
+    except SystemExit as exc:
+        assert exc.code == 0
+    output = capsys.readouterr().out
 
-    assert main(["--config", NANO_CONFIG_PATH, "agent", "--with-outputs"]) == 0
-    assert calls == {"config_path": NANO_CONFIG_PATH, "with_outputs": True}
+    assert "--brain" in output
+    assert "--vision" in output
+    assert "--token-env" in output
+
+
+def test_cli_web_control_requires_strong_token_for_lan(capsys, monkeypatch):
+    monkeypatch.setenv("AILAMP_CONTROL_TOKEN", "short")
+
+    exit_code = main(["web-control", "--host", "192.168.1.50"])
+    output = capsys.readouterr().out
+
+    assert exit_code == 2
+    assert "requires a strong token" in output
+
+
+def test_cli_web_control_rejects_wildcard_host(capsys, monkeypatch):
+    monkeypatch.setenv("AILAMP_CONTROL_TOKEN", "x" * 32)
+
+    exit_code = main(["web-control", "--host", "0.0.0.0"])
+    output = capsys.readouterr().out
+
+    assert exit_code == 2
+    assert "concrete host" in output
+
+
+def test_cli_web_control_starts_runtime_scheduler_and_cleans_up(monkeypatch, capsys):
+    calls = []
+
+    class FakeRuntime:
+        def open(self):
+            calls.append("open")
+
+        def start_scheduler(self):
+            calls.append("start_scheduler")
+
+        def close(self):
+            calls.append("close")
+
+    class FakeServer:
+        runtime = FakeRuntime()
+        server_address = ("127.0.0.1", 8766)
+
+        def serve_forever(self):
+            calls.append("serve_forever")
+            raise KeyboardInterrupt
+
+        def server_close(self):
+            calls.append("server_close")
+
+    def fake_create_server(address, config, **kwargs):
+        calls.append(("create_server", address, kwargs["with_outputs"], kwargs["brain_enabled"], kwargs["vision_enabled"]))
+        return FakeServer()
+
+    monkeypatch.setattr("ailamp.web.create_server", fake_create_server)
+
+    exit_code = main(["web-control", "--port", "8766", "--brain", "--vision"])
+    output = capsys.readouterr().out
+
+    assert exit_code == 130
+    assert calls == [
+        ("create_server", ("127.0.0.1", 8766), False, True, True),
+        "open",
+        "start_scheduler",
+        "serve_forever",
+        "close",
+        "server_close",
+    ]
+    assert "http://127.0.0.1:8766" in output

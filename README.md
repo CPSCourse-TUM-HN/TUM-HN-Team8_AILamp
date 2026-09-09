@@ -1,95 +1,161 @@
-# Team 8 — Interactive Robot Lamp (LeLamp-based)
+# AILamp
 
-**Course:** Embedded Systems, Cyber-Physical Systems and Robotics (INHN0018) — TUM Campus Heilbronn, Summer 2026
-**Team:** Group 8 · **Presentation:** 09.09.2026, from 13:00 (online)
-**Upstream:** built on [LeLamp](https://github.com/humancomputerlab/LeLamp) and [lelamp_runtime](https://github.com/humancomputerlab/lelamp_runtime) by Human Computer Lab — **GPL-3.0**
+AILamp is a Jetson Nano 4GB API-hybrid interactive robotic lamp built from the LeLamp mechanical and motion foundation. The current primary interaction path is audio-free: typed text and optional USB camera JPEGs go to an OpenAI brain, which returns validated tool actions for ST3215 servo control and Pico WH LED control. MuJoCo simulation remains on a Mac/PC.
 
-A desk lamp that sees and talks: a 5-DOF ST3215 arm on a Jetson, with camera-based person/pose
-detection, expressive motion playback, addressable LED feedback, a voice agent
-(LiveKit / OpenAI Realtime), and a MuJoCo digital twin used for offline motion development.
+## Modeling and Simulation Toolchain
 
-![AILamp — an expressive robotic lamp on a Jetson Nano](docs/media/ailamp_title_slide.png)
+AILamp keeps the same toolchain as the upstream LeLamp repository:
 
----
+- Mechanical CAD: OnShape.
+- 3D print exchange files: original LeLamp `.3mf` files in `3D/` plus generated AILamp adapter files in `3D/AILamp_Adapters/`.
+- Mesh assets for simulation: `.stl` files in `simulation/assets/`.
+- Robot simulation: MuJoCo MJCF XML, with `simulation/ailamp_scene.xml` as the AILamp scene.
+- Reference robot description: `simulation/robot.urdf` is kept with the upstream assets.
 
-## 1. Course deliverables — where to find them
+Do not make Blender, Gazebo, Isaac Sim, SolidWorks, or Fusion 360 the primary project workflow unless the team explicitly changes this toolchain.
 
-| # | Required item | Location in this repository |
-|---|---|---|
-| 1 | **Video** demonstrating the project in action | [`docs/video/`](docs/video/) |
-| 2 | **Technical report** (project, methodology, findings) | [PDF](docs/report/TEAM8_AiLamp_Technical_Report.pdf) · [Word](docs/report/TEAM8_AiLamp_Technical_Report.docx) · [source and figures](docs/report/) |
-| 3 | **Presentation slides (PDF)** | [`docs/slides/`](docs/slides/) |
-| 4 | **All code** | repository root: `ailamp_runtime/`, `firmware/`, `simulation/`, `scripts/`, `config/`, `tests/` |
-| 5 | **Repository link** (this repo) | <https://github.com/CPSCourse-TUM-HN/TUM-HN-Team8_LeLamp> |
+## Hardware Profiles
 
-Submission status and the full checklist: [`SUBMISSION.md`](SUBMISSION.md). Team and roles: [`TEAM.md`](TEAM.md).
+The full non-printed hardware BOM is the structured `[hardware_bom]` section in the active profile config. The default profile is now `config/hardware.toml` for the selected NVIDIA Jetson Nano Developer Kit 4GB. `config/hardware.jetson-nano.toml` is kept as an explicit alias for the same Nano API-hybrid route, and `config/hardware.orin.toml` preserves the older Orin Nano Super profile for reference only.
 
-## 2. What we built on top of the upstream project
+Two controller profiles are provided:
 
-Upstream LeLamp provides the mechanical design, the MJCF/URDF model and the base motion runtime.
-Our contribution (see [`NOTICE.md`](NOTICE.md) for the exact file-level provenance):
+- `config/hardware.toml`: default Jetson Nano 4GB API-hybrid profile. It keeps motor, LED, camera, OpenAI brain control, and legacy vision-loop compatibility, but does not install or require microphone, speaker, MuJoCo, local YOLO pose, or local large models on the Nano.
+- `config/hardware.jetson-nano.toml`: explicit Jetson Nano alias for commands and documentation.
+- `config/hardware.orin.toml`: older Orin Nano Super profile with local YOLO person/pose detection.
 
-- **Jetson platform bring-up** — two hardware profiles: Orin Nano Super (local YOLO person/pose
-  detection) and Jetson Nano 4GB (API-hybrid, no local large models), selected purely by config.
-- **Redesigned lamp base** that hides the Jetson electronics: generated replacement shell and cover
-  (`3D/AILamp_Adapters/`) scaled from the original LampBase form, plus tray/deck and cable clips.
-  Print-ready files in [`3D/print_ready/`](3D/print_ready/).
-- **Perception → behaviour layer** — vision events (person near/left/right, posture) mapped to motion
-  recordings and LED colours through a configurable `[behavior_map]`.
-- **Voice + vision fusion** — an agent tool layer that combines the current vision state with spoken
-  intent and can drive the physical outputs.
-- **Pico WH LED controller firmware** (`firmware/pico_led_controller/`) over a serial protocol, with
-  level shifting to the NeoMatrix.
-- **Peripheral integration** — Arducam UB0234 camera, Seeed ReSpeaker XVF3800 microphone array.
-- **Simulation scene** for the modified base (`simulation/ailamp_scene.xml`) so motions can be
-  validated without hardware.
-- **Test suite and local verification** (`tests/`, `scripts/verify_local.sh`) plus a CI workflow.
-- **Bilingual build documentation** (`docs/en/`, `docs/zh/`).
-- *Experimental:* an LLM decision layer behind a local safety gate (`poc_claude_brain/`) — not part
-  of the graded core system, included for completeness.
+## Software and OS Target
 
-## 3. Quick start
+The physical lamp target is the Jetson Nano 4GB route:
 
-```bash
-git clone https://github.com/CPSCourse-TUM-HN/TUM-HN-Team8_LeLamp.git
-cd TUM-HN-Team8_LeLamp
-python3 -m venv .venv && source .venv/bin/activate
-pip install -e ".[test]"
-ailamp runtime-check          # environment sanity check
-ailamp sim-check              # MuJoCo smoke test (needs .[simulation])
-```
+- Jetson OS: NVIDIA JetPack 4.6.x / Jetson Linux R32.x, Ubuntu 18.04 based.
+- Recommended first flash: NVIDIA JetPack 4.6.1 SD card image for Jetson Nano Developer Kit.
+- Python runtime: reuse the environment that already runs this lamp's LeLamp motions. AILamp alone requires Python >=3.11; the local upstream follower package requires Python >=3.12. Do not replace the system Python or existing calibration.
+- AILamp install extra on Jetson Nano: `.[nano]`.
+- Vision on Jetson Nano: USB UVC frame capture plus low-rate OpenAI vision API. Local YOLO/pose and local large models are not installed on Nano.
+- Simulation: MuJoCo stays on Mac/PC; the Nano runs only the physical runtime.
+- Audio: not installed in the current default profile. Voice/LiveKit is an optional future upgrade.
+- Camera: Arducam UB0234 USB UVC camera, not a Raspberry Pi camera stack.
 
-On the lamp itself (Jetson): `pip install -e ".[hardware,voice]"` (Orin) or `pip install -e ".[nano]"`
-(Nano 4GB), then `ailamp hardware-check --include-devices` before running anything with `--with-outputs`.
-
-Full setup, CLI reference, hardware profiles and project layout:
-**[`docs/technical-overview.md`](docs/technical-overview.md)**.
-Build guides: [`docs/en/`](docs/en/) · [`docs/zh/`](docs/zh/). Hardware BOM and printing guide:
-[`docs/hardware/`](docs/hardware/).
-
-## 4. Repository layout
+## Project Layout
 
 ```text
-.
-├── ailamp_runtime/        Python runtime package (services, agent, CLI)
-├── firmware/              Raspberry Pi Pico WH LED controller
-├── simulation/            MuJoCo MJCF model, URDF, STL assets, our scene
-├── 3D/                    Upstream .3mf parts, our adapter kit, print-ready exports
-├── config/                Hardware/runtime profiles (Orin Nano Super, Jetson Nano 4GB)
-├── scripts/               Generators, renderers, verify_local.sh
-├── tests/                 Unit tests
-├── deploy/                systemd units
-├── poc_claude_brain/      Experimental LLM decision layer (not graded core)
-└── docs/
-    ├── report/  slides/  video/     course deliverables
-    ├── en/  zh/                     build guides
-    ├── hardware/                    BOM + 3D printing guide (PDF)
-    ├── media/                       renders and screenshots
-    └── technical-overview.md        full technical README
+AILamp/
+  3D/                         LeLamp .3mf files and AILamp adapter kit
+  3D/AILamp_Adapters/         Generated .3mf print files and .stl exports
+  simulation/                 MuJoCo MJCF model, STL assets, AILamp scene
+  firmware/pico_led_controller/
+  ailamp_runtime/ailamp/      Python runtime package
+  config/hardware.toml        Default Jetson Nano 4GB hardware and runtime config
+  config/hardware.jetson-nano.toml
+  config/hardware.orin.toml   Older Orin profile kept for reference
+  docs/en/                    English build guide
+  docs/zh/                    Chinese build guide
+  tests/                      Local unit tests
 ```
 
-## 5. Licence and attribution
+## 3D Print Files
 
-This project is a derivative work of LeLamp and is therefore released under the **GNU GPL v3**
-(see [`LICENSE`](LICENSE)). Copied upstream assets — 3D print files, MuJoCo/URDF simulation assets and
-motion recording CSVs — and the exact upstream commits are listed in [`NOTICE.md`](NOTICE.md).
+The seven upstream LeLamp `.3mf` files are kept unchanged for reference. AILamp uses generated replacement base parts under `3D/AILamp_Adapters/`: `AILamp_LampBase_Electronics_Shell.3mf` replaces `LampBase.3mf`, and `AILamp_LampBase_Electronics_Cover.3mf` replaces `LampBase - Cover.3mf`. The replacement shell preserves the complete central motor chamber and arm-origin relationship first, then expands the base for the selected Jetson electronics envelope, cooling intake, screw bosses, debug/service openings, and power/signal cable exits. It is not a second base stacked under the original. Bench-fit tray/deck files and cable clips are also included for staged hardware testing. Print the replacement base at low infill first for fit testing before a final print.
+
+Adapter files are generated by `scripts/generate_ailamp_adapters.py`. The local tests verify that checked-in adapter files match fresh generation and that the generated 3MF meshes are closed 2-manifold meshes.
+
+## Setup
+
+For a software preview on a development machine, AILamp itself supports Python >=3.11:
+
+```bash
+git clone https://github.com/YuGu0358/AILamp.git
+cd AILamp
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e ".[test]"
+```
+
+For physical Jetson Nano output, use the already-working LeLamp Python environment where motion playback is known to work. The local upstream `lelamp_runtime` package requires Python >=3.12; do not overwrite that environment or recalibrate servos just to install AILamp.
+
+```bash
+source /path/to/existing-working-lelamp-env/bin/activate
+pip install -e ".[nano]"
+ailamp runtime-check --offline
+ailamp hardware-check
+```
+
+Set `motors.lamp_id` in `config/hardware.toml` to the exact LeLamp follower ID that already succeeds on this Nano. The default `ailamp` is only a placeholder config default, not proof of the installed calibration identity. `ailamp motor-test` lists configured ports and bundled recordings; it does not move hardware or validate actual motion.
+
+For MuJoCo simulation:
+
+```bash
+pip install -e ".[simulation]"
+```
+
+## CLI
+
+```bash
+ailamp runtime-check
+ailamp runtime-check --offline
+ailamp runtime-check --include-devices --include-motor-runtime
+ailamp hardware-check
+ailamp hardware-check --include-devices
+ailamp hardware-check --failures-only
+ailamp motor-test
+ailamp led-test
+ailamp camera-test
+ailamp sim-check
+ailamp sim-check --render outputs/sim_check.png
+ailamp sim-demo
+ailamp sim-viewer --render outputs/model.png
+ailamp web-control
+OPENAI_API_KEY=... ailamp web-control --brain
+OPENAI_API_KEY=... ailamp web-control --brain --vision
+OPENAI_API_KEY=... ailamp web-control --brain --vision --with-outputs
+ailamp vision-demo
+ailamp vision-loop --frames 30
+ailamp vision-loop --with-outputs
+ailamp agent-tools-test --event person_close --apply
+ailamp agent-tools-test --event posture_studying --apply
+ailamp agent-tools-test --event person_right --offset 0.6 --request "看着我并跟随我" --apply
+```
+
+`web-control` is the recommended primary console. By default it binds to `127.0.0.1:8765`, runs dry, and does not open the camera, serial ports, audio stack, or cloud API. Add `--brain` to use OpenAI with `OPENAI_API_KEY`, add `--vision` to send camera JPEGs to that model, and add `--with-outputs` only after motor and LED tests pass. The browser must still unlock the physical output gate before real commands are sent.
+
+Stop other original LeLamp, `vision-loop`, or voice-agent processes before launching `web-control --with-outputs`. Prefer SSH tunneling to the default loopback server. For trusted LAN access, bind a concrete Nano LAN IPv4 address and set a 32+ character random token:
+
+```bash
+python3 - <<'PY'
+import secrets
+print(secrets.token_urlsafe(32))
+PY
+export AILAMP_CONTROL_TOKEN='paste-generated-token-here'
+OPENAI_API_KEY=... ailamp web-control --host 192.168.1.50 --brain --vision --token-env AILAMP_CONTROL_TOKEN
+```
+
+Never expose the console to the public internet.
+
+`vision-loop` remains as a legacy camera-to-behavior bridge. It is not the AI-brain path: it maps OpenAI vision events through local rules. Use it only for compatibility and commissioning.
+
+`ailamp agent` is the optional future voice/LiveKit path and is disabled by the current no-audio profile.
+
+The joint deltas accepted from the brain are normalized LeRobot/LeLamp units, limited per step. Those limits are not collision avoidance, OpenCV frame time is host acquisition time rather than USB hardware capture time, and software stop is not a physical power cutoff.
+
+## Verification
+
+Run the local project check before pushing changes:
+
+```bash
+scripts/verify_local.sh
+```
+
+The script runs unit tests, lockfile validation, static hardware checks, wheel build, whitespace checks, and MuJoCo smoke tests when the sibling `mujoco_mcp` environment is present.
+
+`docs/github-actions-ci.yml` contains the matching GitHub Actions template. Copy it to `.github/workflows/ci.yml` when pushing with a GitHub credential that has `workflow` scope.
+
+## Documentation
+
+- English guide: `docs/en/`
+- Chinese guide: `docs/zh/`
+- Current no-audio control guide: `docs/en/8-audio-free-control.md` and `docs/zh/8-无音频交互方案.md`
+
+## Attribution
+
+AILamp copies 3D print files, MuJoCo/URDF simulation assets, and motion recording CSV files from Human Computer Lab's LeLamp projects. See `NOTICE.md` and `LICENSE`.
