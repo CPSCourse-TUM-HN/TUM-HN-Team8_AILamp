@@ -3,7 +3,7 @@
 **Course:** Embedded Systems, Cyber-Physical Systems and Robotics (INHN0018)
 **Team:** Group 8, TUM Campus Heilbronn, Summer Semester 2026
 **Date:** 09.09.2026
-**Repository:** <https://github.com/CPSCourse-TUM-HN/TUM-HN-Team8_LeLamp>
+**Repository:** <https://github.com/CPSCourse-TUM-HN/TUM-HN-Team8_AILamp>
 
 > Historical planning outline, superseded by the completed TEAM8 AiLamp technical report:
 > [PDF](TEAM8_AiLamp_Technical_Report.pdf), [Word](TEAM8_AiLamp_Technical_Report.docx),

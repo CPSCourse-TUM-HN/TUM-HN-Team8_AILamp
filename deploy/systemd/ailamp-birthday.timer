@@ -1,9 +1,0 @@
-[Unit]
-Description=Run AILamp birthday greeting check daily
-
-[Timer]
-OnCalendar=*-*-* 09:00:00
-Persistent=true
-
-[Install]
-WantedBy=timers.target

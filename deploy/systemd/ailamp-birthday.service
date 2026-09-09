@@ -1,9 +1,0 @@
-[Unit]
-Description=AILamp birthday greeting
-After=network-online.target
-
-[Service]
-Type=oneshot
-WorkingDirectory=/opt/AILamp
-Environment=AILAMP_PROJECT_ROOT=/opt/AILamp
-ExecStart=/opt/AILamp/.venv/bin/ailamp --config /opt/AILamp/config/hardware.toml birthday-check --with-outputs --speak
