@@ -1,13 +1,22 @@
 # Presentation slides
 
-The course requires the slides **in PDF format**. Put the exported file here as:
+The course requires the slides **in PDF format**. The submitted deck is:
 
-```
-docs/slides/Group8_CPS_Presentation.pdf
+- [`Group8_CPS_Presentation.pdf`](Group8_CPS_Presentation.pdf) — 22 pages, the required PDF.
+- [`Group8_CPS_Presentation.pptx`](Group8_CPS_Presentation.pptx) — editable PowerPoint source.
+
+Slides 1–16 are the talk itself; slides 17–22 are backup material (sources and
+acknowledgements, vision and voice, BOM and power, test coverage, timeline, printable parts).
+The backup slides are hidden in the PowerPoint source, so they are exported explicitly:
+
+```bash
+soffice --headless \
+  --convert-to 'pdf:impress_pdf_Export:{"ExportHiddenSlides":{"type":"boolean","value":"true"}}' \
+  --outdir docs/slides docs/slides/Group8_CPS_Presentation.pptx
 ```
 
-Keep the editable source (PowerPoint/Keynote/Google Slides export) next to it if you have one, e.g.
-`Group8_CPS_Presentation.pptx`, so the deck can be revised later.
+The demonstration video embedded in the PowerPoint source is not duplicated inside the PDF.
+It is published separately as [`docs/video/TEAM8_AiLamp_Combined_Demo.mp4`](../video/TEAM8_AiLamp_Combined_Demo.mp4).
 
 Suggested 15-minute structure:
 
