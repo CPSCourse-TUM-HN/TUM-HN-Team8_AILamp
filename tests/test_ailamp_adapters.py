@@ -288,12 +288,19 @@ def test_checked_in_adapter_files_match_fresh_generation(tmp_path):
     generator.generate_all(generated_dir)
 
     for spec in generator.adapter_specs():
-        for suffix in (".3mf", ".stl"):
-            checked_in = ROOT / "3D/AILamp_Adapters" / f"{spec.name}{suffix}"
-            generated = generated_dir / f"{spec.name}{suffix}"
-            assert checked_in.read_bytes() == generated.read_bytes()
+        # STL is uncompressed, so regeneration must reproduce it byte for byte.
+        checked_in_stl = ROOT / "3D/AILamp_Adapters" / f"{spec.name}.stl"
+        assert checked_in_stl.read_bytes() == (generated_dir / f"{spec.name}.stl").read_bytes()
 
+        # 3MF is a DEFLATE archive. Its compressed bytes depend on the zlib build, so compare
+        # the archive's contents: the same members carrying the same uncompressed bytes.
         checked_in_3mf = ROOT / "3D/AILamp_Adapters" / f"{spec.name}.3mf"
+        generated_3mf = generated_dir / f"{spec.name}.3mf"
+        with zipfile.ZipFile(checked_in_3mf) as expected, zipfile.ZipFile(generated_3mf) as actual:
+            assert expected.namelist() == actual.namelist()
+            for member in expected.namelist():
+                assert expected.read(member) == actual.read(member), member
+
         assert_3mf_is_two_manifold(checked_in_3mf)
 
 
