@@ -39,7 +39,7 @@ Repository (public, GPL-3.0): <https://github.com/CPSCourse-TUM-HN/TUM-HN-Team8_
 - [x] Demo video recorded, committed or linked from `docs/video/README.md`
 - [x] Report finished and exported to PDF
 - [ ] `scripts/verify_local.sh` passes on a clean checkout
-- [ ] `README.md` links resolve on GitHub
-- [ ] `NOTICE.md` provenance up to date
+- [x] `README.md` links resolve on GitHub
+- [x] `NOTICE.md` provenance up to date
 - [x] Repository pushed to `CPSCourse-TUM-HN` and public
 - [ ] Handover of hardware agreed with Moaaz
