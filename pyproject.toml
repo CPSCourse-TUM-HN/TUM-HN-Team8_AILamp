@@ -43,7 +43,10 @@ test = [
     # tests/test_ailamp_adapters.py drives scripts/generate_ailamp_adapters.py, which needs the
     # mesh stack at import time. trimesh[easy] supplies it: manifold3d (CSG),
     # mapbox_earcut (triangulation), lxml (3MF), networkx and scipy.
-    "trimesh[easy]>=4.0",
+    # Pinned below 5: tests/test_ailamp_adapters.py compares the checked-in 3MF/STL byte for
+    # byte against a fresh generation, and trimesh 5 writes a different archive container.
+    # The checked-in print files are a deliverable, so the dependency moves, not the parts.
+    "trimesh[easy]>=4.0,<5",
 ]
 
 [project.scripts]
