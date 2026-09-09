@@ -8,7 +8,7 @@ A desk lamp that sees and talks: a 5-DOF ST3215 arm on a Jetson, with camera-bas
 detection, expressive motion playback, addressable LED feedback, a voice agent
 (LiveKit / OpenAI Realtime), and a MuJoCo digital twin used for offline motion development.
 
-![Assembly](docs/media/ailamp_current_overview.png)
+![AILamp — an expressive robotic lamp on a Jetson Nano](docs/media/ailamp_title_slide.png)
 
 ---
 
