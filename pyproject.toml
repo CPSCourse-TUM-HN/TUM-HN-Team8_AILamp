@@ -40,12 +40,10 @@ voice = [
 ]
 test = [
     "pytest>=8.0",
-    # tests/test_ailamp_adapters.py drives scripts/generate_ailamp_adapters.py,
-    # which needs the CSG kernel, triangulation and mesh libraries at import time.
-    "manifold3d>=3.0",
-    "mapbox-earcut>=1.0",
-    "trimesh>=4.0",
-    "networkx>=3.0",   # trimesh graph operations; not pulled in by base trimesh
+    # tests/test_ailamp_adapters.py drives scripts/generate_ailamp_adapters.py, which needs the
+    # mesh stack at import time. trimesh[easy] supplies it: manifold3d (CSG),
+    # mapbox_earcut (triangulation), lxml (3MF), networkx and scipy.
+    "trimesh[easy]>=4.0",
 ]
 
 [project.scripts]
