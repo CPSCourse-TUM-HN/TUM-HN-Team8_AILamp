@@ -47,6 +47,10 @@ test = [
     # byte against a fresh generation, and trimesh 5 writes a different archive container.
     # The checked-in print files are a deliverable, so the dependency moves, not the parts.
     "trimesh[easy]>=4.0,<5",
+    # The CSG kernel and the triangulator decide the exact tessellation, so the checked-in
+    # 3MF/STL only regenerate identically under the versions that produced them.
+    "manifold3d==3.5.0",
+    "mapbox-earcut==2.0.0",
 ]
 
 [project.scripts]
