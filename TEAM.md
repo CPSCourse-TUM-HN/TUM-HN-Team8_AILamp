@@ -7,7 +7,7 @@
 | Haojun Liang | Haojun.Liang@tum.de | | |
 | Ziwei Zhao | ziwei.zhao@tum.de | | |
 | Jingyi Shao | jingyi.shao@tum.de | | |
-| Sizhe Tao | sihao.tao@tum.de | | |
+| Sihao Tao | sihao.tao@tum.de | | |
 | Shiming Du | Shiming.Du@tum.de | | |
 
 Course: Embedded Systems, Cyber-Physical Systems and Robotics (INHN0018), TUM Campus Heilbronn, S2026.
