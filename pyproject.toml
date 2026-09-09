@@ -40,6 +40,11 @@ voice = [
 ]
 test = [
     "pytest>=8.0",
+    # tests/test_ailamp_adapters.py drives scripts/generate_ailamp_adapters.py,
+    # which needs the CSG kernel, triangulation and mesh libraries at import time.
+    "manifold3d>=3.0",
+    "mapbox-earcut>=1.0",
+    "trimesh>=4.0",
 ]
 
 [project.scripts]
