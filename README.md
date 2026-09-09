@@ -32,7 +32,7 @@ also available.
 | 2 | **Technical report** (project, methodology, findings) | [PDF](docs/report/TEAM8_AiLamp_Technical_Report.pdf) · [Word](docs/report/TEAM8_AiLamp_Technical_Report.docx) · [source and figures](docs/report/) |
 | 3 | **Presentation slides (PDF)** | [`docs/slides/`](docs/slides/) |
 | 4 | **All code** | repository root: `ailamp_runtime/`, `firmware/`, `simulation/`, `scripts/`, `config/`, `tests/` |
-| 5 | **Repository link** (this repo) | <https://github.com/CPSCourse-TUM-HN/TUM-HN-Team8_LeLamp> |
+| 5 | **Repository link** (this repo) | <https://github.com/CPSCourse-TUM-HN/TUM-HN-Team8_AILamp> |
 
 Submission status and the full checklist: [`SUBMISSION.md`](SUBMISSION.md). Team and roles: [`TEAM.md`](TEAM.md).
 
@@ -72,8 +72,8 @@ and Cover, while the arm, head and diffuser stay unchanged. Files are in
 ## 3. Quick start
 
 ```bash
-git clone https://github.com/CPSCourse-TUM-HN/TUM-HN-Team8_LeLamp.git
-cd TUM-HN-Team8_LeLamp
+git clone https://github.com/CPSCourse-TUM-HN/TUM-HN-Team8_AILamp.git
+cd TUM-HN-Team8_AILamp
 python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[test]"
 ailamp runtime-check          # environment sanity check

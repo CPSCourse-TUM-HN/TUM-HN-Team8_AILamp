@@ -11,7 +11,7 @@ Presentation: **09.09.2026, from 13:00**, Etzelstr. 38 / online. Duration: **15 
 | 2 | Technical report — project, methodologies, findings | [PDF](docs/report/TEAM8_AiLamp_Technical_Report.pdf) / [Word and source](docs/report/) | ☑ report published |
 | 3 | Presentation slides, **PDF format** | [PDF](docs/slides/Group8_CPS_Presentation.pdf) / [PowerPoint source](docs/slides/Group8_CPS_Presentation.pptx) | ☑ published 09.09.2026 |
 | 4 | All code used in the project | repository root | ☑ pushed |
-| 5 | Link to the GitHub repository holding all of the above | <https://github.com/CPSCourse-TUM-HN/TUM-HN-Team8_LeLamp> | ☑ pushed 30.08.2026 |
+| 5 | Link to the GitHub repository holding all of the above | <https://github.com/CPSCourse-TUM-HN/TUM-HN-Team8_AILamp> | ☑ pushed 30.08.2026 |
 
 > All materials (presentation, report, code and video) must be uploaded to the team's GitHub
 > repository, and the code must additionally live in the course organisation
@@ -26,12 +26,12 @@ whether the handover may take place by 22.09.2026 — pending confirmation.*
 ## Push to the course organisation
 
 ```bash
-cd Team8_LeLamp
-git remote -v   # origin -> git@github.com:CPSCourse-TUM-HN/TUM-HN-Team8_LeLamp.git
+cd TUM-HN-Team8_AILamp   # or your existing local clone
+git remote -v   # origin -> git@github.com:CPSCourse-TUM-HN/TUM-HN-Team8_AILamp.git
 git push
 ```
 
-Repository (public, GPL-3.0): <https://github.com/CPSCourse-TUM-HN/TUM-HN-Team8_LeLamp>
+Repository (public, GPL-3.0): <https://github.com/CPSCourse-TUM-HN/TUM-HN-Team8_AILamp>
 
 ## Before the presentation
 
