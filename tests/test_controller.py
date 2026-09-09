@@ -1397,7 +1397,7 @@ def test_close_failure_retains_resources_allows_retry_then_reopen():
 
 
 def test_open_connect_failure_lifecycle_outputs_use_stable_code_without_exception_text():
-    secret = "SECRET_TOKEN:/Users/yugu/private/device.env"
+    secret = "SECRET_TOKEN:/Users/example/private/device.env"
 
     class ConnectFailsLed(FakeLed):
         def connect(self):
@@ -1420,7 +1420,7 @@ def test_open_connect_failure_lifecycle_outputs_use_stable_code_without_exceptio
 
 
 def test_failed_current_service_connect_is_cleaned_and_cleanup_failure_blocks_reopen_until_retry():
-    secret = "SECRET_TOKEN:/Users/yugu/private/device.env"
+    secret = "SECRET_TOKEN:/Users/example/private/device.env"
 
     class PartiallyFailingLed(FakeLed):
         def __init__(self):

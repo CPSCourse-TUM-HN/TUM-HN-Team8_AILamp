@@ -106,7 +106,7 @@ Slide 1 uses a white L02-style cover with left-aligned title text, a restrained 
 Run the builder with the designated Node runtime and export exactly:
 
 ```text
-/Users/yugu/Documents/New project 4/AILamp/output/presentation/AILamp_Group8_Course_Presentation.pptx
+<project-root>/AILamp/output/presentation/AILamp_Group8_Course_Presentation.pptx
 ```
 
 ### Task 3: Export and Inspect the PDF
@@ -120,7 +120,7 @@ Run the builder with the designated Node runtime and export exactly:
 Use LibreOffice headless conversion and create exactly:
 
 ```text
-/Users/yugu/Documents/New project 4/AILamp/output/pdf/AILamp_Group8_Course_Presentation.pdf
+<project-root>/AILamp/output/pdf/AILamp_Group8_Course_Presentation.pdf
 ```
 
 - [ ] **Step 2: Run automated PPTX canvas checks**
@@ -128,7 +128,7 @@ Use LibreOffice headless conversion and create exactly:
 Run:
 
 ```bash
-python3 /Users/yugu/.codex/plugins/cache/openai-primary-runtime/presentations/26.826.12353/skills/presentations/container_tools/slides_test.py /Users/yugu/Documents/New\ project\ 4/AILamp/output/presentation/AILamp_Group8_Course_Presentation.pptx
+python3 <presentation-toolkit>/slides_test.py <project-root>/AILamp/output/presentation/AILamp_Group8_Course_Presentation.pptx
 ```
 
 Expected: no unreviewed overflow warnings.

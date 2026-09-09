@@ -87,11 +87,11 @@ Fit rule: keep the first print slightly loose. The current adapter generator use
 
 Generated print files are located in:
 
-`/Users/yugu/Documents/New project 4/AILamp/3D/AILamp_Adapters/`
+`<project-root>/AILamp/3D/AILamp_Adapters/`
 
 Updated project docs are located in:
 
-`/Users/yugu/Documents/New project 4/AILamp/docs/en/1-3d-print.md`
+`<project-root>/AILamp/docs/en/1-3d-print.md`
 
-`/Users/yugu/Documents/New project 4/AILamp/docs/zh/1-3D打印.md`
+`<project-root>/AILamp/docs/zh/1-3D打印.md`
 

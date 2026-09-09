@@ -69,7 +69,7 @@
 
 ## 已确认的 Codex 编程任务（仅第一阶段）
 
-上下文：工作区 `/Users/yugu/Documents/New project 4/AILamp`，遵守 AGENTS.md。先阅读本方案、`docs/zh/Nano连接记录.md`、`ailamp_runtime/ailamp/services/motor.py` 和原 `../lelamp_runtime/lelamp/follower/`。新校准和 Nano 13 段快照位于 `output/hardware_backups/LeLamp-demo-calibration-20260908-7QE2U0/`。
+上下文：工作区 `<project-root>/AILamp`，遵守 AGENTS.md。先阅读本方案、`docs/zh/Nano连接记录.md`、`ailamp_runtime/ailamp/services/motor.py` 和原 `../lelamp_runtime/lelamp/follower/`。新校准和 Nano 13 段快照位于 `output/hardware_backups/LeLamp-demo-calibration-20260908-7QE2U0/`。
 
 任务：实现本方案第一阶段的仅电机适配器、共用执行器、轻量 CLI 与测试，使它能先离线验证、再由主操作者部署进行完整五轴动作实验。第二阶段网页本次不写。先用测试复现现有接入边界问题，再按批准方案做最小实现。
 

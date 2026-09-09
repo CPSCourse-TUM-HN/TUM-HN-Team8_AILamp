@@ -10,8 +10,8 @@
 
 ## Approved visual specification
 
-- Original model: `/Users/yugu/Documents/New project 4/LeLamp/simulation/scene.xml`.
-- Output: `/Users/yugu/Documents/New project 4/AILamp/output/video/LeLamp_MuJoCo_Preview_NoText.mp4`.
+- Original model: `<project-root>/LeLamp/simulation/scene.xml`.
+- Output: `<project-root>/AILamp/output/video/LeLamp_MuJoCo_Preview_NoText.mp4`.
 - Target 1920x1080, 30 fps, H.264, yuv420p, faststart, no audio/subtitle/data streams.
 - Clean studio-style ground/background and soft scene lighting; no LED emission, UI panels, title, captions, labels, watermarks, timestamps, logos, or narration.
 - Keep original geometry, joints and recognizable original base/head/arms. Do not use the modified AILamp base.

@@ -112,7 +112,7 @@ sudo docker exec -it \
 
 ## 21:01–21:05 五轴剧本路线与 1 号零点核对
 
-- 现场照片：`/Users/yugu/Downloads/IMG_1220.HEIC`。照片中露出的舵机可见“2”标签，安装在长臂根部的俯仰连接处；按照原 LeLamp 装配资料，1 号对应它下方使整块支架相对底座水平转动的关节。1 号本体/标签未在照片中完整露出，不能仅据照片进一步判断内部紧固或摩擦情况。
+- 现场照片：本地现场照片（未随仓库发布）。照片中露出的舵机可见“2”标签，安装在长臂根部的俯仰连接处；按照原 LeLamp 装配资料，1 号对应它下方使整块支架相对底座水平转动的关节。1 号本体/标签未在照片中完整露出，不能仅据照片进一步判断内部紧固或摩擦情况。
 - 用户选定“必须完整五轴原动作，先解决1号启动位置与校准范围问题”，不采用四轴掩码或以纯视频代替实体动作；演示触发为预设情景，不应宣称是真实 AI/摄像头/音频自动触发。
 - 最新只读值：位置 `3081/2135/1812/2065/2183`，五轴 Torque_Enable 均为 `0`，Status 均为 `0`；Torque_Limit 为 `1000/200/200/200/200`。因此 1 号并非保留了与 2–5 号相同的低出力测试上限，但当前仍未使能，未验证带载驱动力。
 - 1 号寄存器仍为 Homing_Offset `-223`、Min_Position_Limit `1210`、Max_Position_Limit `2841`、Operating_Mode `0`；当前 `3081` 比旧上限高 `240`。这只说明当前姿态与所记录范围不对应，不等于电机损坏。
@@ -293,7 +293,7 @@ Follower 原文件字节的 SHA-256：
 2026-09-08 20:19 验证：
 
 - Nano 备份目录：`/home/<nano-user>/Downloads/LeLamp-calibration-backup-20260908-g0jqYZ`
-- Mac 备份目录：`/Users/yugu/Documents/New project 4/AILamp/output/hardware_backups/LeLamp-calibration-backup-20260908-g0jqYZ`
+- Mac 备份目录：`<project-root>/AILamp/output/hardware_backups/LeLamp-calibration-backup-20260908-g0jqYZ`
 - 保留完整 `calibration/robots/lelamp_follower/lelamp.json` 与 `calibration/teleoperators/lelamp_leader/lelamp.json` 目录结构和原始 JSON 字节。
 - Follower：769 字节，SHA-256 为上文的 `718ab2c24c51a643f19fc3f4a0ab59de1c1d82b849ac7e258839e6aaf3a3590d`。
 - Leader：768 字节，SHA-256 为 `7fa29fb124cd86a702a02a73a91f87fb160aee6b59380f0069235111c5bb863c`。

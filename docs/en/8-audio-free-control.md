@@ -2,7 +2,9 @@
 
 Current AILamp control is audio-free. The primary path is typed text plus optional USB camera JPEGs into the OpenAI brain, then validated local tool admission through one serialized controller and the single motor worker.
 
-Confirmed installed hardware: Jetson Nano 4GB, five ST3215 servos, Pico WH LED panel, and USB camera. Existing LeLamp servo IDs, calibration, and recording playback are reused. Microphone, speaker, and LiveKit voice are disabled in the default profile. The birthday reminder feature is removed from active runtime, config, CLI, systemd, and docs.
+Confirmed installed hardware: Jetson Nano 4GB, five ST3215 servos, Pico WH LED panel, and USB
+camera. "Installed" here means physically present and wired; on the current lamp the LED channel
+is not operational and is not claimed as a demonstrated result. Existing LeLamp servo IDs, calibration, and recording playback are reused. Microphone, speaker, and LiveKit voice are disabled in the default profile. The birthday reminder feature is removed from active runtime, config, CLI, systemd, and docs.
 
 ```text
 text + optional JPEG + state/history
